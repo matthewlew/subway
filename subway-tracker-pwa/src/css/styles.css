@@ -1,533 +1,607 @@
-/* Reset and base styles */
+/* Modern NYC Subway Tracker - Redesigned UI */
+/* Authentic subway aesthetic with modern polish */
+
+:root {
+    /* NYC Subway Brand Colors */
+    --subway-black: #000000;
+    --subway-white: #FFFFFF;
+    --subway-yellow: #FCCC0A;
+    --subway-gray: #A7A9AC;
+    --subway-dark-gray: #53565A;
+
+    /* MTA Line Colors (Official) */
+    --line-1-2-3: #EE352E;
+    --line-4-5-6: #00933C;
+    --line-7: #B933AD;
+    --line-A-C-E: #0039A6;
+    --line-B-D-F-M: #FF6319;
+    --line-G: #6CBE45;
+    --line-J-Z: #996633;
+    --line-L: #A7A9AC;
+    --line-N-Q-R-W: #FCCC0A;
+    --line-S: #808183;
+
+    /* UI Colors */
+    --bg-primary: #FAFAFA;
+    --bg-secondary: #FFFFFF;
+    --bg-dark: #1A1A1A;
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --border-color: #E0E0E0;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+
+    /* Spacing System */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-xxl: 48px;
+
+    /* Typography */
+    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-:root {
-    --primary-color: #2C3E50;
-    --secondary-color: #3498DB;
-    --accent-color: #E74C3C;
-    --success-color: #2ECC71;
-    --bg-color: #ECF0F1;
-    --card-bg: #FFFFFF;
-    --text-primary: #2C3E50;
-    --text-secondary: #7F8C8D;
-    --border-color: #BDC3C7;
-    --shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: var(--bg-color);
+    font-family: var(--font-display);
+    background: var(--bg-primary);
     color: var(--text-primary);
-    padding-bottom: 70px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
 }
 
-#app {
-    max-width: 600px;
-    margin: 0 auto;
-    min-height: 100vh;
-}
-
-/* Navigation */
-.bottom-nav {
+/* Header with MTA Yellow Accent */
+header {
     position: fixed;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
-    background: var(--card-bg);
-    display: flex;
-    justify-content: space-around;
-    padding: 8px 0;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    z-index: 100;
-}
-
-.nav-btn {
-    background: none;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 20px;
-    cursor: pointer;
-    color: var(--text-secondary);
-    transition: all 0.2s;
-    font-size: 12px;
-}
-
-.nav-btn .icon {
-    font-size: 24px;
-}
-
-.nav-btn.active {
-    color: var(--secondary-color);
-}
-
-/* Screen management */
-.screen {
-    display: none;
-    padding: 16px;
-    animation: fadeIn 0.3s;
-}
-
-.screen.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Header */
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 12px 0;
+    background: var(--subway-black);
+    color: var(--subway-white);
+    padding: var(--space-md) var(--space-lg);
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    border-bottom: 4px solid var(--subway-yellow);
 }
 
 header h1 {
     font-size: 24px;
     font-weight: 700;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
 }
 
-.icon-btn {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 20px;
+header h1::before {
+    content: "ðŸš‡";
+    font-size: 28px;
+}
+
+/* Bottom Navigation - Modern iOS Style */
+nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding: var(--space-sm) var(--space-md) calc(var(--space-sm) + env(safe-area-inset-bottom));
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+    z-index: 999;
+}
+
+nav button {
+    background: transparent;
+    border: none;
+    padding: var(--space-sm) var(--space-md);
     cursor: pointer;
-    transition: all 0.2s;
-}
-
-.icon-btn:active {
-    transform: scale(0.95);
-}
-
-/* Cards */
-.status-card, .stat-card, .arrival-card {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-}
-
-/* Arrivals Screen */
-.arrivals-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-bottom: 20px;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-radius: 12px;
+    min-width: 70px;
 }
 
-.arrival-card {
+nav button span {
+    font-size: 24px;
+    transition: transform 0.2s ease;
+}
+
+nav button:hover {
+    background: rgba(0,0,0,0.04);
+}
+
+nav button.active {
+    color: var(--subway-black);
+}
+
+nav button.active span {
+    transform: scale(1.1);
+}
+
+/* Main Content Area */
+main {
+    margin-top: 80px;
+    margin-bottom: 80px;
+    padding: var(--space-lg) var(--space-md);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    min-height: calc(100vh - 160px);
+}
+
+/* Section Cards - Clean Material Design */
+.section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Section Headers */
+.section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-lg);
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: var(--space-sm);
+}
+
+.section h2::before {
+    font-size: 24px;
+}
+
+/* Cards with NYC Subway Aesthetic */
+.card {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Arrival Cards - Sleek Train Display */
+.arrival-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
     cursor: pointer;
-    transition: all 0.2s;
-    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.arrival-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
+    border-color: var(--subway-yellow);
 }
 
 .arrival-card:active {
     transform: scale(0.98);
-    border-color: var(--secondary-color);
 }
 
-.arrival-card.selected {
-    border-color: var(--secondary-color);
-    background: #EBF5FB;
+/* Train Line Badges - Authentic MTA Style */
+.line-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--subway-white);
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
+
+/* MTA Official Line Colors */
+.line-badge.line-1, .line-badge.line-2, .line-badge.line-3 { background: var(--line-1-2-3); }
+.line-badge.line-4, .line-badge.line-4, .line-badge.line-6 { background: var(--line-4-5-6); }
+.line-badge.line-7 { background: var(--line-7); }
+.line-badge.line-A, .line-badge.line-C, .line-badge.line-E { background: var(--line-A-C-E); }
+.line-badge.line-B, .line-badge.line-D, .line-badge.line-F, .line-badge.line-M { background: var(--line-B-D-F-M); }
+.line-badge.line-G { background: var(--line-G); }
+.line-badge.line-J, .line-badge.line-Z { background: var(--line-J-Z); }
+.line-badge.line-L { background: var(--line-L); color: var(--subway-black); }
+.line-badge.line-N, .line-badge.line-Q, .line-badge.line-R, .line-badge.line-W { background: var(--line-N-Q-R-W); color: var(--subway-black); }
+.line-badge.line-S { background: var(--line-S); }
 
 .arrival-info {
     flex: 1;
+    min-width: 0;
 }
 
-.arrival-line {
-    display: inline-block;
-    background: var(--primary-color);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-weight: 700;
-    margin-right: 8px;
-    min-width: 40px;
-    text-align: center;
+.arrival-info .destination {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
 }
 
-.arrival-destination {
-    font-size: 14px;
+.arrival-info .direction {
+    font-size: 13px;
     color: var(--text-secondary);
-    margin-top: 4px;
 }
 
 .arrival-time {
     font-size: 20px;
     font-weight: 700;
-    color: var(--secondary-color);
-}
-
-/* Log Ride Screen */
-.log-container {
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.ride-preview {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow);
-}
-
-.preview-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.preview-item:last-child {
-    border-bottom: none;
-}
-
-.preview-item .label {
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-#line-selector {
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 14px;
-    background: white;
-}
-
-/* Log Ride Button */
-.btn-log-ride {
-    width: 100%;
-    background: linear-gradient(135deg, var(--secondary-color), #2980B9);
-    color: white;
-    border: none;
-    border-radius: 16px;
-    padding: 24px;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-    transition: all 0.2s;
-    margin-bottom: 20px;
-}
-
-.btn-log-ride:active {
-    transform: scale(0.97);
-}
-
-.btn-log-ride .btn-icon {
-    font-size: 32px;
-}
-
-/* Optional details */
-.optional-details {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow);
-}
-
-.optional-details summary {
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--secondary-color);
-    list-style: none;
-    padding: 8px 0;
-}
-
-.optional-details summary::-webkit-details-marker {
-    display: none;
-}
-
-.details-content {
-    padding-top: 16px;
-}
-
-.input-group {
-    margin-bottom: 16px;
-}
-
-.input-group label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--text-primary);
-}
-
-.input-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 16px;
-}
-
-.input-with-scan {
-    display: flex;
-    gap: 8px;
-}
-
-.input-with-scan input {
-    flex: 1;
-}
-
-.btn-secondary {
-    padding: 12px 16px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
+    color: var(--subway-black);
+    font-family: var(--font-mono);
     white-space: nowrap;
 }
 
-.hint {
-    display: block;
-    color: var(--text-secondary);
-    font-size: 12px;
-    margin-top: 4px;
+.arrival-time.arriving {
+    color: var(--line-4-5-6);
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* Buttons */
-.btn-primary {
-    background: var(--secondary-color);
-    color: white;
-    border: none;
-    padding: 14px 24px;
-    border-radius: 8px;
-    font-size: 16px;
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Form Elements - Modern iOS Style */
+.form-group {
+    margin-bottom: var(--space-lg);
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
     font-weight: 600;
-    cursor: pointer;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select {
     width: 100%;
-    transition: all 0.2s;
+    padding: var(--space-md);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: var(--font-display);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--subway-yellow);
+    box-shadow: 0 0 0 3px rgba(252, 204, 10, 0.1);
+}
+
+/* Primary Button - NYC Subway Yellow */
+.btn-primary {
+    width: 100%;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--subway-black);
+    color: var(--subway-white);
+    border: 3px solid var(--subway-yellow);
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+    background: var(--subway-yellow);
+    color: var(--subway-black);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-primary:active {
-    transform: scale(0.98);
+    transform: translateY(0);
 }
 
-.btn-primary.disabled {
-    background: var(--border-color);
-    cursor: not-allowed;
+/* Secondary Button */
+.btn-secondary {
+    width: 100%;
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: var(--space-sm);
 }
 
-/* Stats Screen */
-#stats-screen header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.btn-secondary:hover {
+    border-color: var(--text-primary);
+    background: var(--bg-primary);
 }
 
-#stats-period {
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: white;
+/* Stats Grid - Modern Dashboard */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
 }
 
 .stat-card {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
     text-align: center;
-    padding: 20px;
 }
 
 .stat-card h3 {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
+    font-size: 12px;
     font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-sm);
 }
 
-.stat-value {
+.stat-card .value {
     font-size: 32px;
     font-weight: 700;
-    color: var(--secondary-color);
+    color: var(--subway-black);
+    font-family: var(--font-mono);
 }
 
-.chart-container {
-    background: var(--card-bg);
+.stat-card .label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+}
+
+/* Loading States */
+.loading {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--text-secondary);
+}
+
+.loading::before {
+    content: "ðŸš‡";
+    font-size: 48px;
+    display: block;
+    margin-bottom: var(--space-md);
+    animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: var(--space-xxl) var(--space-lg);
+    color: var(--text-secondary);
+}
+
+.empty-state::before {
+    content: "ðŸ“Š";
+    font-size: 64px;
+    display: block;
+    margin-bottom: var(--space-lg);
+    opacity: 0.3;
+}
+
+/* Refresh Button */
+.refresh-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    transform: rotate(180deg);
+    border-color: var(--subway-yellow);
+}
+
+/* Period Selector */
+.period-selector {
+    margin-bottom: var(--space-lg);
+}
+
+.period-selector select {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
     border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow);
+    padding: var(--space-sm) var(--space-md);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
 }
 
-.chart-container h3 {
-    margin-bottom: 16px;
+/* Ride History List */
+.ride-list {
+    margin-top: var(--space-lg);
+}
+
+.ride-item {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.ride-item .line-badge {
+    width: 32px;
+    height: 32px;
     font-size: 16px;
 }
 
-.rides-list, .cars-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.ride-details {
+    flex: 1;
 }
 
-.ride-item, .car-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px;
-    background: var(--bg-color);
-    border-radius: 8px;
+.ride-details .station-name {
+    font-weight: 600;
     font-size: 14px;
+    color: var(--text-primary);
 }
 
-.ride-item-left {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
-.ride-line-badge {
-    background: var(--primary-color);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-weight: 700;
+.ride-details .ride-time {
     font-size: 12px;
-    min-width: 30px;
-    text-align: center;
-}
-
-.ride-time {
     color: var(--text-secondary);
-    font-size: 12px;
+    font-family: var(--font-mono);
 }
 
-/* Status messages */
-.status-message {
-    padding: 12px;
-    border-radius: 8px;
-    margin-top: 12px;
-    text-align: center;
-    font-size: 14px;
-}
-
-.status-message.success {
-    background: #D5F4E6;
-    color: #27AE60;
-}
-
-.status-message.error {
-    background: #FADBD8;
-    color: #C0392B;
-}
-
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.8);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal.active {
+/* Train Car Badges */
+.car-badges {
     display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
 }
 
-.modal-content {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 500px;
-    width: 90%;
-    position: relative;
+.car-badge {
+    background: var(--subway-dark-gray);
+    color: var(--subway-white);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-mono);
 }
 
-.modal-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: none;
-    border: none;
-    font-size: 32px;
-    cursor: pointer;
-    color: var(--text-secondary);
-}
-
-#camera-feed {
-    width: 100%;
-    border-radius: 8px;
-    margin: 16px 0;
-}
-
-/* Loading overlay */
-.overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255,255,255,0.9);
-    z-index: 999;
-    justify-content: center;
-    align-items: center;
-}
-
-.overlay.active {
-    display: flex;
-}
-
-.spinner {
-    border: 4px solid var(--border-color);
-    border-top: 4px solid var(--secondary-color);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Quick action */
-.quick-action {
-    position: sticky;
-    bottom: 80px;
-    padding: 16px;
-    margin: 0 -16px;
-}
-
-/* Responsive */
-@media (max-width: 400px) {
-    .nav-btn {
-        padding: 8px 12px;
-        font-size: 10px;
+/* Responsive Design */
+@media (max-width: 640px) {
+    main {
+        padding: var(--space-md);
     }
 
-    .nav-btn .icon {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    header h1 {
         font-size: 20px;
     }
+
+    nav button {
+        font-size: 10px;
+        min-width: 60px;
+        padding: var(--space-xs) var(--space-sm);
+    }
+}
+
+/* Dark Mode Support (Optional) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #121212;
+        --bg-secondary: #1E1E1E;
+        --text-primary: #E0E0E0;
+        --text-secondary: #A0A0A0;
+        --border-color: #333333;
+    }
+}
+
+/* Safari iOS Specific Fixes */
+@supports (-webkit-touch-callout: none) {
+    body {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Accessibility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus Visible for Keyboard Navigation */
+*:focus-visible {
+    outline: 3px solid var(--subway-yellow);
+    outline-offset: 2px;
 }
