@@ -3,7 +3,7 @@ const CACHE_NAME = 'subway-tracker-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/src/css/styles.css',
+  '/styles.css',
   '/src/js/app.js',
   '/src/js/dbService.js',
   '/src/js/locationService.js',

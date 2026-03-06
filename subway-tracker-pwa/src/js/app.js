@@ -1,9 +1,10 @@
 // Main application logic
 class SubwayTrackerApp {
     constructor() {
-        this.currentScreen = 'pre-ride';
+        this.currentScreen = 'arrivals';
         this.selectedArrival = null;
-        this.updateInterval = null;
+        this.countdownInterval = null;
+        this.renderedArrivals = [];
     }
 
     async init() {
@@ -61,6 +62,11 @@ class SubwayTrackerApp {
                 this.loadStatsScreen();
             }
         }
+
+        // Sync nav button active state
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.screen === screenName);
+        });
     }
 
     setupPreRideScreen() {
@@ -73,6 +79,11 @@ class SubwayTrackerApp {
         quickLogBtn?.addEventListener('click', async () => {
             if (this.selectedArrival) {
                 rideLogger.setSelectedArrival(this.selectedArrival);
+                // Pre-fill line selector on log screen
+                const lineSelector = document.getElementById('line-selector');
+                if (lineSelector && this.selectedArrival.line) {
+                    lineSelector.value = this.selectedArrival.line;
+                }
                 this.switchScreen('log-ride');
             }
         });
@@ -146,8 +157,13 @@ class SubwayTrackerApp {
         const stationInput = document.getElementById('current-station');
         if (stationInput) stationInput.value = station.name;
 
+        // Keep search box filled
+        const searchInput = document.getElementById('station-search');
+        if (searchInput && !searchInput.value) searchInput.value = station.name;
+
         const arrivals = await mtaService.getArrivalsForStation(station.id, station.lines);
         this.renderArrivals(arrivals);
+        this.startCountdown();
     }
 
     async loadPreRideScreen() {
@@ -174,12 +190,13 @@ class SubwayTrackerApp {
             if (locationStatusMsg) locationStatusMsg.textContent = `📍 Nearest: ${closestStation.name} — ${(closestStation.distance * 5280).toFixed(0)} ft away`;
             if (detectBtn) { detectBtn.disabled = false; detectBtn.textContent = '↻ Refresh Location'; }
 
-            // Also fill in the search box
+            // Fill in the search box
             const searchInput = document.getElementById('station-search');
             if (searchInput) searchInput.value = closestStation.name;
 
             const arrivals = await mtaService.getArrivalsForStation(closestStation.id, closestStation.lines);
             this.renderArrivals(arrivals);
+            this.startCountdown();
 
         } catch (error) {
             console.error('Location error:', error);
@@ -197,21 +214,34 @@ class SubwayTrackerApp {
         const arrivalsList = document.getElementById('arrivals-list');
         const quickLogBtn = document.getElementById('quick-log-from-arrival');
 
+        // Store for countdown updates
+        this.renderedArrivals = arrivals.map(a => ({ ...a, fetchedAt: Date.now() }));
+        this.selectedArrival = null;
+
+        if (quickLogBtn) {
+            quickLogBtn.style.display = 'none';
+            quickLogBtn.disabled = true;
+        }
+
         if (arrivals.length === 0) {
             arrivalsList.innerHTML = '<p style="text-align:center;color:#7F8C8D;padding:20px;">No upcoming trains</p>';
             return;
         }
 
+        this._renderArrivalCards(arrivalsList, arrivals, quickLogBtn);
+    }
+
+    _renderArrivalCards(arrivalsList, arrivals, quickLogBtn) {
         arrivalsList.innerHTML = arrivals.map((arrival, idx) => `
             <div class="arrival-card" data-index="${idx}">
+                <span class="line-badge" style="background:${statsService.getLineColor(arrival.line)};color:${['N','Q','R','W','L'].includes(arrival.line) ? '#000' : '#fff'}">${arrival.line}</span>
                 <div class="arrival-info">
-                    <div>
-                        <span class="arrival-line" style="background:${statsService.getLineColor(arrival.line)}">${arrival.line}</span>
-                        <span>${arrival.destination}</span>
-                    </div>
-                    <div class="arrival-destination">${arrival.direction}</div>
+                    <div class="destination">${arrival.destination}</div>
+                    <div class="direction">${arrival.direction}</div>
                 </div>
-                <div class="arrival-time">${mtaService.formatArrivalTime(arrival.minutesAway)}</div>
+                <div class="arrival-time${arrival.minutesAway < 1 ? ' arriving' : ''}" data-arrival-idx="${idx}">
+                    ${mtaService.formatArrivalTime(arrival.minutesAway)}
+                </div>
             </div>
         `).join('');
 
@@ -219,18 +249,36 @@ class SubwayTrackerApp {
         const arrivalCards = arrivalsList.querySelectorAll('.arrival-card');
         arrivalCards.forEach((card, idx) => {
             card.addEventListener('click', () => {
-                // Remove previous selection
                 arrivalCards.forEach(c => c.classList.remove('selected'));
-
-                // Select this arrival
                 card.classList.add('selected');
                 this.selectedArrival = arrivals[idx];
 
-                // Enable quick log button
-                quickLogBtn.classList.remove('disabled');
-                quickLogBtn.textContent = `Log ${arrivals[idx].line} train to ${arrivals[idx].destination}`;
+                if (quickLogBtn) {
+                    quickLogBtn.style.display = 'block';
+                    quickLogBtn.disabled = false;
+                    quickLogBtn.classList.remove('disabled');
+                    quickLogBtn.textContent = `🚇 Log ${arrivals[idx].line} to ${arrivals[idx].destination}`;
+                }
             });
         });
+    }
+
+    // Update arrival time displays every 30s without re-rendering the whole list
+    startCountdown() {
+        if (this.countdownInterval) clearInterval(this.countdownInterval);
+
+        this.countdownInterval = setInterval(() => {
+            const now = Date.now();
+            this.renderedArrivals.forEach((arrival, idx) => {
+                const elapsed = Math.floor((now - arrival.fetchedAt) / 60000);
+                const currentMins = Math.max(0, arrival.minutesAway - elapsed);
+                const el = document.querySelector(`[data-arrival-idx="${idx}"]`);
+                if (el) {
+                    el.textContent = mtaService.formatArrivalTime(currentMins);
+                    el.className = `arrival-time${currentMins < 1 ? ' arriving' : ''}`;
+                }
+            });
+        }, 15000); // update every 15 seconds
     }
 
     setupLogRideScreen() {
@@ -259,6 +307,9 @@ class SubwayTrackerApp {
                 return;
             }
 
+            logBtn.disabled = true;
+            logBtn.textContent = 'Logging…';
+
             // Log the ride
             const result = await rideLogger.logRide({
                 line,
@@ -266,15 +317,21 @@ class SubwayTrackerApp {
                 note: note || null
             });
 
+            logBtn.disabled = false;
+            logBtn.innerHTML = '<span>🚇</span> Log Ride Now';
+
             if (result.success) {
                 // Clear inputs
                 if (carNumberInput) carNumberInput.value = '';
                 if (rideNoteInput) rideNoteInput.value = '';
                 if (lineSelector) lineSelector.value = '';
-                document.getElementById('car-model-info').textContent = '';
+                const modelInfo = document.getElementById('car-model-info');
+                if (modelInfo) modelInfo.textContent = '';
 
-                // Update stats
-                setTimeout(() => this.loadStatsScreen(), 500);
+                // Switch to stats after a short delay
+                setTimeout(() => {
+                    this.switchScreen('stats');
+                }, 800);
             }
         });
 
@@ -300,10 +357,10 @@ class SubwayTrackerApp {
         const timeEl = document.getElementById('current-time');
         if (timeEl) {
             const now = new Date();
-            timeEl.textContent = now.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
+            timeEl.textContent = now.toLocaleTimeString('en-US', {
+                hour: 'numeric',
                 minute: '2-digit',
-                hour12: true 
+                hour12: true
             });
         }
     }
@@ -315,12 +372,12 @@ class SubwayTrackerApp {
         try {
             const station = await rideLogger.detectStation();
             if (station) {
-                stationEl.textContent = station.name;
+                stationEl.value = station.name;
             } else {
-                stationEl.textContent = 'Unknown (enable location)';
+                stationEl.value = 'Unknown (enable location)';
             }
         } catch (error) {
-            stationEl.textContent = 'Unknown';
+            stationEl.value = 'Unknown';
         }
     }
 
@@ -330,7 +387,8 @@ class SubwayTrackerApp {
         const captureBtn = document.getElementById('capture-btn');
         const closeBtn = modal?.querySelector('.modal-close');
 
-        modal?.classList.add('active');
+        if (!modal) return;
+        modal.style.display = 'flex';
 
         // Request camera access
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -340,50 +398,56 @@ class SubwayTrackerApp {
             .catch(error => {
                 console.error('Camera error:', error);
                 alert('Camera access denied');
-                modal?.classList.remove('active');
+                modal.style.display = 'none';
             });
 
-        // Capture button
-        captureBtn?.addEventListener('click', () => {
+        // Capture button — remove old listeners first
+        const newCaptureBtn = captureBtn.cloneNode(true);
+        captureBtn.parentNode.replaceChild(newCaptureBtn, captureBtn);
+        newCaptureBtn.addEventListener('click', () => {
             this.captureCarNumber(video);
         });
 
         // Close button
-        closeBtn?.addEventListener('click', () => {
-            const stream = video.srcObject;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            modal?.classList.remove('active');
-        });
+        const newCloseBtn = closeBtn?.cloneNode(true);
+        if (closeBtn && newCloseBtn) {
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+            newCloseBtn.addEventListener('click', () => {
+                this.closeCameraModal(modal, video);
+            });
+        }
+    }
+
+    closeCameraModal(modal, video) {
+        const stream = video?.srcObject;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        if (video) video.srcObject = null;
+        if (modal) modal.style.display = 'none';
     }
 
     captureCarNumber(video) {
         const canvas = document.getElementById('camera-canvas');
-        const ctx = canvas.getContext('2d');
+        if (!canvas || !video) return;
 
+        const ctx = canvas.getContext('2d');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0);
 
-        // In production, use OCR library (e.g., Tesseract.js)
-        // For now, show placeholder
         const ocrResult = document.getElementById('ocr-result');
-        ocrResult.innerHTML = '<p>OCR processing... (add Tesseract.js for production)</p>';
+        if (ocrResult) ocrResult.innerHTML = '<p style="color:#666;">OCR processing… (add Tesseract.js for production)</p>';
 
-        // Simulate OCR result
+        // Simulate OCR result for now
         setTimeout(() => {
-            const mockCarNumber = '1234'; // Replace with actual OCR
-            document.getElementById('car-number').value = mockCarNumber;
+            const mockCarNumber = '1234';
+            const carInput = document.getElementById('car-number');
+            if (carInput) carInput.value = mockCarNumber;
 
-            // Close modal
             const modal = document.getElementById('camera-modal');
-            const stream = video.srcObject;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            modal?.classList.remove('active');
-        }, 2000);
+            this.closeCameraModal(modal, video);
+        }, 1500);
     }
 
     async setupStatsScreen() {
@@ -403,8 +467,10 @@ class SubwayTrackerApp {
 
         // Update stat cards
         document.getElementById('total-rides').textContent = stats.totalRides;
-        document.getElementById('time-underground').textContent = 
-            `${stats.timeUnderground.hours}h ${stats.timeUnderground.minutes}m`;
+        document.getElementById('time-underground').textContent =
+            stats.timeUnderground.hours > 0
+                ? `${stats.timeUnderground.hours}h ${stats.timeUnderground.minutes}m`
+                : `${stats.timeUnderground.minutes}m`;
         document.getElementById('top-station').textContent = stats.topStation || '--';
         document.getElementById('top-line').textContent = stats.topLine || '--';
 
@@ -420,17 +486,17 @@ class SubwayTrackerApp {
         if (!container) return;
 
         if (rides.length === 0) {
-            container.innerHTML = '<p style="text-align:center;color:#7F8C8D;">No rides yet</p>';
+            container.innerHTML = '<p style="text-align:center;color:#7F8C8D;">No rides yet — log your first ride!</p>';
             return;
         }
 
         container.innerHTML = rides.map(ride => `
             <div class="ride-item">
-                <div class="ride-item-left">
-                    <span class="ride-line-badge" style="background:${statsService.getLineColor(ride.line)}">${ride.line || '?'}</span>
-                    <span>${ride.station}</span>
+                <span class="line-badge" style="background:${statsService.getLineColor(ride.line)};color:${['N','Q','R','W','L'].includes(ride.line) ? '#000' : '#fff'};width:32px;height:32px;font-size:15px;">${ride.line || '?'}</span>
+                <div class="ride-details">
+                    <div class="station-name">${ride.station}</div>
+                    <div class="ride-time">${statsService.formatDate(ride.timestamp)}</div>
                 </div>
-                <span class="ride-time">${statsService.formatDate(ride.timestamp)}</span>
             </div>
         `).join('');
     }
@@ -442,19 +508,19 @@ class SubwayTrackerApp {
         const cars = await dbService.getAllCars();
 
         if (cars.length === 0) {
-            container.innerHTML = '<p style="text-align:center;color:#7F8C8D;">No cars logged yet</p>';
+            container.innerHTML = '<p style="color:#7F8C8D;">No cars logged yet — add a car number when logging rides</p>';
             return;
         }
 
         const sortedCars = cars.sort((a, b) => b.timesSpotted - a.timesSpotted).slice(0, 10);
 
         container.innerHTML = sortedCars.map(car => `
-            <div class="car-item">
+            <div class="car-item" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;">
                 <div>
                     <strong>Car ${car.carNumber}</strong>
                     <div style="font-size:12px;color:#7F8C8D;">${car.model}</div>
                 </div>
-                <span>${car.timesSpotted}× spotted</span>
+                <span class="car-badge">${car.timesSpotted}×</span>
             </div>
         `).join('');
     }
@@ -465,8 +531,6 @@ class SubwayTrackerApp {
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-
-            // Show install button or prompt
             console.log('PWA install available');
         });
 

@@ -34,13 +34,21 @@ class RideLogger {
 
             // Sync to backend if online
             if (navigator.onLine) {
-                await this.syncToBackend(rideData);
+                this.syncToBackend(rideData).catch(() => {
+                    // Backend not configured yet — ignore silently
+                });
             } else {
                 await dbService.addPendingRide(rideData);
                 // Register background sync
-                if ('serviceWorker' in navigator && 'sync' in registration) {
-                    const registration = await navigator.serviceWorker.ready;
-                    await registration.sync.register('sync-rides');
+                if ('serviceWorker' in navigator) {
+                    try {
+                        const registration = await navigator.serviceWorker.ready;
+                        if ('sync' in registration) {
+                            await registration.sync.register('sync-rides');
+                        }
+                    } catch (e) {
+                        // Background sync not supported
+                    }
                 }
             }
 
@@ -115,10 +123,12 @@ class RideLogger {
         const statusEl = document.getElementById('log-status');
         if (statusEl) {
             statusEl.textContent = message;
-            statusEl.className = `status-message ${type}`;
+            statusEl.style.display = 'block';
+            statusEl.style.background = type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1';
+            statusEl.style.color = type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460';
             setTimeout(() => {
                 statusEl.textContent = '';
-                statusEl.className = 'status-message';
+                statusEl.style.display = 'none';
             }, 3000);
         }
 

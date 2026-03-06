@@ -85,7 +85,7 @@ header h1 {
 }
 
 header h1::before {
-    content: "ðŸš‡";
+    content: "🚇";
     font-size: 28px;
 }
 
@@ -425,7 +425,7 @@ main {
 }
 
 .loading::before {
-    content: "ðŸš‡";
+    content: "🚇";
     font-size: 48px;
     display: block;
     margin-bottom: var(--space-md);
@@ -445,7 +445,7 @@ main {
 }
 
 .empty-state::before {
-    content: "ðŸ“Š";
+    content: “📊”;
     font-size: 64px;
     display: block;
     margin-bottom: var(--space-lg);
