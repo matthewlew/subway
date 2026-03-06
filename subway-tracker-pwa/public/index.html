@@ -3,189 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#2C3E50">
+    <meta name="theme-color" content="#000000">
     <meta name="description" content="Track your subway rides, train cars, and commuting stats">
     <title>Subway Tracker</title>
     <link rel="manifest" href="/manifest.json">
-    <link rel="stylesheet" href="/src/css/styles.css">
+    <!-- Cache busting: v2 forces browser to reload CSS -->
+    <link rel="stylesheet" href="/src/css/styles.css?v=20260306">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 </head>
 <body>
-    <div id="app">
-        <!-- Navigation -->
-        <nav class="bottom-nav">
-            <button class="nav-btn active" data-screen="pre-ride">
-                <span class="icon">🚇</span>
-                <span>Arrivals</span>
-            </button>
-            <button class="nav-btn" data-screen="log-ride">
-                <span class="icon">➕</span>
-                <span>Log Ride</span>
-            </button>
-            <button class="nav-btn" data-screen="stats">
-                <span class="icon">📊</span>
-                <span>Stats</span>
-            </button>
-        </nav>
+    <!-- Header with NYC Subway aesthetic -->
+    <header>
+        <h1>Subway Tracker</h1>
+    </header>
 
+    <!-- Main content area -->
+    <main>
         <!-- Pre-Ride Screen: Real-time arrivals -->
-        <div id="pre-ride-screen" class="screen active">
-            <header>
-                <h1>📍 Nearby Trains</h1>
-                <button id="refresh-arrivals" class="icon-btn">🔄</button>
-            </header>
-
-            <div id="location-status" class="status-card">
-                <p>Detecting location...</p>
+        <section id="arrivals" class="section active">
+            <h2>🚇 Nearby Trains</h2>
+            
+            <div id="location-status" class="card">
+                <p>Detecting your location...</p>
             </div>
 
-            <div id="arrivals-list" class="arrivals-container">
-                <!-- Dynamically populated -->
+            <div id="arrivals-list">
+                <!-- Dynamically populated with arrival cards -->
             </div>
+        </section>
 
-            <div class="quick-action">
-                <button id="quick-log-from-arrival" class="btn-primary disabled">
-                    Select a train to quick-log
-                </button>
-            </div>
-        </div>
-
-        <!-- Log Ride Screen: One-tap logging -->
-        <div id="log-ride-screen" class="screen">
-            <header>
-                <h1>Log Your Ride</h1>
-            </header>
-
-            <div class="log-container">
-                <!-- Current ride info -->
-                <div class="ride-preview">
-                    <div class="preview-item">
-                        <span class="label">Station:</span>
-                        <span id="current-station">Detecting...</span>
-                    </div>
-                    <div class="preview-item">
-                        <span class="label">Time:</span>
-                        <span id="current-time">--:--</span>
-                    </div>
-                    <div class="preview-item">
-                        <span class="label">Line:</span>
-                        <select id="line-selector">
-                            <option value="">Auto-detect</option>
-                            <option value="1">1 Train</option>
-                            <option value="2">2 Train</option>
-                            <option value="3">3 Train</option>
-                            <option value="4">4 Train</option>
-                            <option value="5">5 Train</option>
-                            <option value="6">6 Train</option>
-                            <option value="A">A Train</option>
-                            <option value="C">C Train</option>
-                            <option value="E">E Train</option>
-                            <option value="L">L Train</option>
-                            <option value="N">N Train</option>
-                            <option value="Q">Q Train</option>
-                            <option value="R">R Train</option>
-                            <option value="W">W Train</option>
-                        </select>
-                    </div>
+        <!-- Log Ride Screen -->
+        <section id="log" class="section">
+            <h2>Log Your Ride</h2>
+            
+            <div class="card">
+                <div class="form-group">
+                    <label>Current Station</label>
+                    <input type="text" id="current-station" value="Detecting..." readonly>
                 </div>
 
-                <!-- One-tap log button -->
-                <button id="log-ride-btn" class="btn-log-ride">
-                    <span class="btn-icon">🚇</span>
-                    <span class="btn-text">LOG RIDE NOW</span>
+                <div class="form-group">
+                    <label>Train Line</label>
+                    <select id="line-selector">
+                        <option value="">Auto-detect from location</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="A">A</option>
+                        <option value="C">C</option>
+                        <option value="E">E</option>
+                        <option value="B">B</option>
+                        <option value="D">D</option>
+                        <option value="F">F</option>
+                        <option value="M">M</option>
+                        <option value="G">G</option>
+                        <option value="J">J</option>
+                        <option value="Z">Z</option>
+                        <option value="L">L</option>
+                        <option value="N">N</option>
+                        <option value="Q">Q</option>
+                        <option value="R">R</option>
+                        <option value="W">W</option>
+                        <option value="S">S</option>
+                    </select>
+                </div>
+
+                <button id="log-ride-btn" class="btn-primary">
+                    <span>🚇</span> Log Ride Now
                 </button>
 
-                <!-- Optional details (collapsible) -->
-                <details class="optional-details">
-                    <summary>+ Add car number & notes (optional)</summary>
-                    <div class="details-content">
-                        <div class="input-group">
-                            <label for="car-number">Car Number:</label>
-                            <div class="input-with-scan">
-                                <input type="text" id="car-number" placeholder="e.g., 9876" pattern="[0-9]{4}">
-                                <button id="scan-car-btn" class="btn-secondary">📷 Scan</button>
-                            </div>
-                            <small id="car-model-info" class="hint"></small>
+                <details style="margin-top: 16px;">
+                    <summary style="cursor: pointer; font-weight: 600; margin-bottom: 12px;">+ Optional: Add car number & notes</summary>
+                    <div class="form-group">
+                        <label>Car Number (4 digits)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="car-number" placeholder="e.g., 9876" pattern="[0-9]{4}" style="flex: 1;">
+                            <button id="scan-car-btn" class="btn-secondary">📷</button>
                         </div>
-                        <div class="input-group">
-                            <label for="ride-note">Quick note:</label>
-                            <input type="text" id="ride-note" placeholder="Crowded, on time, etc." maxlength="50">
-                        </div>
+                        <small id="car-model-info" style="color: #757575; font-size: 13px;"></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Quick Note</label>
+                        <input type="text" id="ride-note" placeholder="Crowded, on time, etc." maxlength="50">
                     </div>
                 </details>
 
-                <div id="log-status" class="status-message"></div>
+                <div id="log-status" style="margin-top: 16px; padding: 12px; border-radius: 8px; display: none;"></div>
             </div>
-        </div>
+        </section>
 
-        <!-- Stats Screen: Dashboard -->
-        <div id="stats-screen" class="screen">
-            <header>
-                <h1>Your Stats</h1>
+        <!-- Stats Screen -->
+        <section id="stats" class="section">
+            <h2>📊 Your Stats</h2>
+            
+            <div class="period-selector">
                 <select id="stats-period">
                     <option value="7">Last 7 days</option>
                     <option value="30">Last 30 days</option>
                     <option value="all">All time</option>
                 </select>
-            </header>
+            </div>
 
-            <div id="stats-container">
+            <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total Rides</h3>
-                    <p class="stat-value" id="total-rides">0</p>
+                    <div class="value" id="total-rides">0</div>
+                    <div class="label">rides logged</div>
                 </div>
 
                 <div class="stat-card">
                     <h3>Time Underground</h3>
-                    <p class="stat-value" id="time-underground">0h 0m</p>
+                    <div class="value" id="time-underground">0h</div>
+                    <div class="label">estimated</div>
                 </div>
 
                 <div class="stat-card">
-                    <h3>Most Common Station</h3>
-                    <p class="stat-value" id="top-station">--</p>
+                    <h3>Top Station</h3>
+                    <div class="value" id="top-station" style="font-size: 18px;">--</div>
+                    <div class="label">most common</div>
                 </div>
 
                 <div class="stat-card">
                     <h3>Favorite Line</h3>
-                    <p class="stat-value" id="top-line">--</p>
+                    <div class="value" id="top-line">--</div>
+                    <div class="label">most rides</div>
                 </div>
+            </div>
 
-                <div class="chart-container">
-                    <h3>Rides by Line</h3>
-                    <canvas id="line-chart"></canvas>
-                </div>
-
-                <div class="chart-container">
-                    <h3>Recent Rides</h3>
-                    <div id="recent-rides-list" class="rides-list">
-                        <!-- Populated dynamically -->
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <h3>Train Cars Spotted</h3>
-                    <div id="cars-list" class="cars-list">
-                        <!-- Populated dynamically -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">Recent Rides</h3>
+                <div id="recent-rides-list" class="ride-list">
+                    <div class="empty-state">
+                        <p>No rides logged yet. Start tracking your commute!</p>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Camera Modal for car scanning -->
-        <div id="camera-modal" class="modal">
-            <div class="modal-content">
-                <button class="modal-close">&times;</button>
-                <h2>Scan Car Number</h2>
-                <video id="camera-feed" autoplay playsinline></video>
-                <canvas id="camera-canvas" style="display:none;"></canvas>
-                <button id="capture-btn" class="btn-primary">Capture</button>
-                <div id="ocr-result"></div>
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">Train Cars Spotted</h3>
+                <div id="cars-list" class="car-badges">
+                    <p style="color: #757575;">Car numbers will appear here as you log them</p>
+                </div>
             </div>
-        </div>
+        </section>
+    </main>
 
-        <!-- Loading overlay -->
-        <div id="loading-overlay" class="overlay">
-            <div class="spinner"></div>
+    <!-- Bottom Navigation -->
+    <nav>
+        <button class="nav-btn active" data-section="arrivals">
+            <span>🚇</span>
+            Arrivals
+        </button>
+        <button class="nav-btn" data-section="log">
+            <span>➕</span>
+            Log
+        </button>
+        <button class="nav-btn" data-section="stats">
+            <span>📊</span>
+            Stats
+        </button>
+    </nav>
+
+    <!-- Camera Modal -->
+    <div id="camera-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; padding: 20px;">
+        <div style="background: white; border-radius: 16px; padding: 24px; max-width: 500px; margin: 0 auto;">
+            <button id="modal-close" style="float: right; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+            <h2 style="margin-bottom: 16px;">Scan Car Number</h2>
+            <video id="camera-feed" autoplay playsinline style="width: 100%; border-radius: 12px;"></video>
+            <button id="capture-btn" class="btn-primary" style="margin-top: 16px;">Capture</button>
+            <div id="ocr-result" style="margin-top: 12px;"></div>
         </div>
     </div>
 
@@ -202,8 +192,8 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('Service Worker registered:', reg))
-                    .catch(err => console.error('Service Worker registration failed:', err));
+                    .then(reg => console.log('✅ Service Worker registered'))
+                    .catch(err => console.error('❌ Service Worker failed:', err));
             });
         }
     </script>
