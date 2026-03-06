@@ -49,7 +49,7 @@ class SubwayTrackerApp {
 
     switchScreen(screenName) {
         // Hide all screens
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
 
         // Show selected screen
         const screen = document.getElementById(`${screenName}-screen`);
@@ -57,10 +57,7 @@ class SubwayTrackerApp {
             screen.classList.add('active');
             this.currentScreen = screenName;
 
-            // Load screen data
-            if (screenName === 'pre-ride') {
-                this.loadPreRideScreen();
-            } else if (screenName === 'stats') {
+            if (screenName === 'stats') {
                 this.loadStatsScreen();
             }
         }
@@ -154,56 +151,45 @@ class SubwayTrackerApp {
     }
 
     async loadPreRideScreen() {
-        const locationStatus = document.getElementById('location-status');
+        const locationStatusMsg = document.getElementById('location-status-msg');
         const arrivalsList = document.getElementById('arrivals-list');
+        const detectBtn = document.getElementById('detect-location-btn');
+
+        if (locationStatusMsg) locationStatusMsg.textContent = '📍 Getting your location…';
+        if (detectBtn) { detectBtn.disabled = true; detectBtn.textContent = 'Detecting…'; }
 
         try {
-            locationStatus.innerHTML = '<p>📍 Getting your location…</p>';
-
-            // Get location
             await locationService.getCurrentPosition();
 
-            // Try within 0.5 miles first, then fall back to closest overall
             let nearbyStations = locationService.getNearbyStations(0.5);
-            if (nearbyStations.length === 0) {
-                nearbyStations = locationService.getNearbyStations(5.0);
-            }
+            if (nearbyStations.length === 0) nearbyStations = locationService.getNearbyStations(5.0);
 
             if (nearbyStations.length === 0) {
-                locationStatus.innerHTML = '<p>⚠️ No stations found nearby. Are you in NYC?</p>';
-                arrivalsList.innerHTML = '';
+                if (locationStatusMsg) locationStatusMsg.textContent = '⚠️ No stations found. Are you in NYC?';
+                if (detectBtn) { detectBtn.disabled = false; detectBtn.textContent = '📍 Use My Location'; }
                 return;
             }
 
             const closestStation = nearbyStations[0];
-            locationStatus.innerHTML = `
-                <p>📍 Nearest: <strong>${closestStation.name}</strong> 
-                &mdash; ${(closestStation.distance * 5280).toFixed(0)} ft away</p>
-                <button id="detect-location-btn" onclick="window.subwayApp.loadPreRideScreen()" 
-                  style="margin-top:8px;padding:6px 14px;background:#ECF0F1;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
-                  ↻ Refresh
-                </button>
-            `;
+            if (locationStatusMsg) locationStatusMsg.textContent = `📍 Nearest: ${closestStation.name} — ${(closestStation.distance * 5280).toFixed(0)} ft away`;
+            if (detectBtn) { detectBtn.disabled = false; detectBtn.textContent = '↻ Refresh Location'; }
 
-            // Load arrivals
-            const arrivals = await mtaService.getArrivalsForStation(
-                closestStation.id,
-                closestStation.lines
-            );
+            // Also fill in the search box
+            const searchInput = document.getElementById('station-search');
+            if (searchInput) searchInput.value = closestStation.name;
 
+            const arrivals = await mtaService.getArrivalsForStation(closestStation.id, closestStation.lines);
             this.renderArrivals(arrivals);
 
         } catch (error) {
             console.error('Location error:', error);
             let msg = '❌ Could not get location.';
-            if (error.code === 1) msg = '🚫 Location permission denied. Go to Settings → Privacy → Location and enable for your browser.';
-            else if (error.code === 2) msg = '⚠️ Location unavailable. Try again.';
-            else if (error.code === 3) msg = '⏱ Location timed out. Try again.';
-            locationStatus.innerHTML = `
-                <p style="color:#E74C3C">${msg}</p>
-                <button id="detect-location-btn" onclick="window.subwayApp.loadPreRideScreen()" class="btn-primary" style="margin-top:10px;">Try Again</button>
-            `;
-            arrivalsList.innerHTML = '';
+            if (error.code === 1) msg = '🚫 Permission denied — enable location in Settings.';
+            else if (error.code === 2) msg = '⚠️ Position unavailable. Try again.';
+            else if (error.code === 3) msg = '⏱ Timed out. Try again.';
+            if (locationStatusMsg) locationStatusMsg.style.color = '#E74C3C';
+            if (locationStatusMsg) locationStatusMsg.textContent = msg;
+            if (detectBtn) { detectBtn.disabled = false; detectBtn.textContent = '📍 Use My Location'; }
         }
     }
 
