@@ -86,6 +86,71 @@ class SubwayTrackerApp {
             detectBtn.textContent = 'Detecting…';
             this.loadPreRideScreen();
         });
+
+        // Manual station search
+        this.setupStationSearch();
+    }
+
+    setupStationSearch() {
+        const input = document.getElementById('station-search');
+        const suggestionsEl = document.getElementById('station-suggestions');
+        if (!input || !suggestionsEl) return;
+
+        const allStations = locationService.stations;
+
+        input.addEventListener('input', () => {
+            const query = input.value.trim().toLowerCase();
+            if (query.length < 2) { suggestionsEl.style.display = 'none'; return; }
+
+            const matches = allStations.filter(s => s.name.toLowerCase().includes(query)).slice(0, 8);
+            if (!matches.length) { suggestionsEl.style.display = 'none'; return; }
+
+            suggestionsEl.innerHTML = matches.map(s => `
+                <div class="suggestion-item" data-id="${s.id}" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:14px;">
+                    <strong>${s.name}</strong>
+                    <span style="color:#999;font-size:12px;margin-left:6px;">${s.lines.join(', ')}</span>
+                </div>
+            `).join('');
+            suggestionsEl.style.display = 'block';
+
+            suggestionsEl.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('mousedown', async (e) => {
+                    e.preventDefault();
+                    const stationId = item.dataset.id;
+                    const station = allStations.find(s => s.id === stationId);
+                    input.value = station.name;
+                    suggestionsEl.style.display = 'none';
+                    await this.loadArrivalsForStation(station);
+                });
+                item.addEventListener('touchstart', async (e) => {
+                    const stationId = item.dataset.id;
+                    const station = allStations.find(s => s.id === stationId);
+                    input.value = station.name;
+                    suggestionsEl.style.display = 'none';
+                    await this.loadArrivalsForStation(station);
+                });
+            });
+        });
+
+        // Hide suggestions on blur
+        input.addEventListener('blur', () => {
+            setTimeout(() => { suggestionsEl.style.display = 'none'; }, 150);
+        });
+    }
+
+    async loadArrivalsForStation(station) {
+        const locationStatus = document.getElementById('location-status');
+        const arrivalsList = document.getElementById('arrivals-list');
+
+        locationStatus.querySelector('p').textContent = `📍 Showing: ${station.name}`;
+        arrivalsList.innerHTML = '<p style="color:#999;padding:16px;">Loading arrivals…</p>';
+
+        // Update log screen station field too
+        const stationInput = document.getElementById('current-station');
+        if (stationInput) stationInput.value = station.name;
+
+        const arrivals = await mtaService.getArrivalsForStation(station.id, station.lines);
+        this.renderArrivals(arrivals);
     }
 
     async loadPreRideScreen() {
