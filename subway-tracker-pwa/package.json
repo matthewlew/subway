@@ -1,0 +1,30 @@
+{
+  "name": "subway-tracker-pwa",
+  "version": "1.0.0",
+  "description": "Progressive Web App for tracking NYC subway rides, train cars, and commuting stats",
+  "author": "Matthew Nguyen <https://github.com/matthewlew>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matthewlew/subway-tracker-pwa.git"
+  },
+  "homepage": "https://github.com/matthewlew/subway-tracker-pwa#readme",
+  "keywords": [
+    "pwa",
+    "subway",
+    "mta",
+    "transit",
+    "tracking",
+    "nyc",
+    "gtfs-realtime"
+  ],
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "preview": "python -m http.server 8000",
+    "deploy": "vercel --prod"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "gtfs-realtime-bindings": "^1.1.2"
+  }
+}

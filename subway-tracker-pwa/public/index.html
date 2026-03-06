@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2C3E50">
+    <meta name="description" content="Track your subway rides, train cars, and commuting stats">
+    <title>Subway Tracker</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/src/css/styles.css">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-screen="pre-ride">
+                <span class="icon">🚇</span>
+                <span>Arrivals</span>
+            </button>
+            <button class="nav-btn" data-screen="log-ride">
+                <span class="icon">➕</span>
+                <span>Log Ride</span>
+            </button>
+            <button class="nav-btn" data-screen="stats">
+                <span class="icon">📊</span>
+                <span>Stats</span>
+            </button>
+        </nav>
+
+        <!-- Pre-Ride Screen: Real-time arrivals -->
+        <div id="pre-ride-screen" class="screen active">
+            <header>
+                <h1>📍 Nearby Trains</h1>
+                <button id="refresh-arrivals" class="icon-btn">🔄</button>
+            </header>
+
+            <div id="location-status" class="status-card">
+                <p>Detecting location...</p>
+            </div>
+
+            <div id="arrivals-list" class="arrivals-container">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="quick-action">
+                <button id="quick-log-from-arrival" class="btn-primary disabled">
+                    Select a train to quick-log
+                </button>
+            </div>
+        </div>
+
+        <!-- Log Ride Screen: One-tap logging -->
+        <div id="log-ride-screen" class="screen">
+            <header>
+                <h1>Log Your Ride</h1>
+            </header>
+
+            <div class="log-container">
+                <!-- Current ride info -->
+                <div class="ride-preview">
+                    <div class="preview-item">
+                        <span class="label">Station:</span>
+                        <span id="current-station">Detecting...</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="label">Time:</span>
+                        <span id="current-time">--:--</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="label">Line:</span>
+                        <select id="line-selector">
+                            <option value="">Auto-detect</option>
+                            <option value="1">1 Train</option>
+                            <option value="2">2 Train</option>
+                            <option value="3">3 Train</option>
+                            <option value="4">4 Train</option>
+                            <option value="5">5 Train</option>
+                            <option value="6">6 Train</option>
+                            <option value="A">A Train</option>
+                            <option value="C">C Train</option>
+                            <option value="E">E Train</option>
+                            <option value="L">L Train</option>
+                            <option value="N">N Train</option>
+                            <option value="Q">Q Train</option>
+                            <option value="R">R Train</option>
+                            <option value="W">W Train</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- One-tap log button -->
+                <button id="log-ride-btn" class="btn-log-ride">
+                    <span class="btn-icon">🚇</span>
+                    <span class="btn-text">LOG RIDE NOW</span>
+                </button>
+
+                <!-- Optional details (collapsible) -->
+                <details class="optional-details">
+                    <summary>+ Add car number & notes (optional)</summary>
+                    <div class="details-content">
+                        <div class="input-group">
+                            <label for="car-number">Car Number:</label>
+                            <div class="input-with-scan">
+                                <input type="text" id="car-number" placeholder="e.g., 9876" pattern="[0-9]{4}">
+                                <button id="scan-car-btn" class="btn-secondary">📷 Scan</button>
+                            </div>
+                            <small id="car-model-info" class="hint"></small>
+                        </div>
+                        <div class="input-group">
+                            <label for="ride-note">Quick note:</label>
+                            <input type="text" id="ride-note" placeholder="Crowded, on time, etc." maxlength="50">
+                        </div>
+                    </div>
+                </details>
+
+                <div id="log-status" class="status-message"></div>
+            </div>
+        </div>
+
+        <!-- Stats Screen: Dashboard -->
+        <div id="stats-screen" class="screen">
+            <header>
+                <h1>Your Stats</h1>
+                <select id="stats-period">
+                    <option value="7">Last 7 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="all">All time</option>
+                </select>
+            </header>
+
+            <div id="stats-container">
+                <div class="stat-card">
+                    <h3>Total Rides</h3>
+                    <p class="stat-value" id="total-rides">0</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Time Underground</h3>
+                    <p class="stat-value" id="time-underground">0h 0m</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Most Common Station</h3>
+                    <p class="stat-value" id="top-station">--</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Favorite Line</h3>
+                    <p class="stat-value" id="top-line">--</p>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Rides by Line</h3>
+                    <canvas id="line-chart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Recent Rides</h3>
+                    <div id="recent-rides-list" class="rides-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Train Cars Spotted</h3>
+                    <div id="cars-list" class="cars-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Modal for car scanning -->
+        <div id="camera-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h2>Scan Car Number</h2>
+                <video id="camera-feed" autoplay playsinline></video>
+                <canvas id="camera-canvas" style="display:none;"></canvas>
+                <button id="capture-btn" class="btn-primary">Capture</button>
+                <div id="ocr-result"></div>
+            </div>
+        </div>
+
+        <!-- Loading overlay -->
+        <div id="loading-overlay" class="overlay">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/src/js/dbService.js"></script>
+    <script src="/src/js/locationService.js"></script>
+    <script src="/src/js/mtaService.js"></script>
+    <script src="/src/js/statsService.js"></script>
+    <script src="/src/js/rideLogger.js"></script>
+    <script src="/src/js/app.js"></script>
+
+    <script>
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered:', reg))
+                    .catch(err => console.error('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
