@@ -32,23 +32,18 @@ class MTAService {
      * Get API key from environment or config
      */
     getApiKey() {
-        // Check for environment variable (Vercel deployment)
-        if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_MTA_API_KEY) {
-            return import.meta.env.VITE_MTA_API_KEY;
-        }
-
-        // Check for window config (set in index.html)
+        // Check for window config (set in index.html or via script)
         if (typeof window !== 'undefined' && window.MTA_CONFIG?.apiKey) {
             return window.MTA_CONFIG.apiKey;
         }
 
-        // Fallback: Check localStorage (for user-configured key)
+        // Check localStorage (user can set key via: localStorage.setItem('mta_api_key', 'YOUR_KEY'))
         if (typeof localStorage !== 'undefined') {
             const storedKey = localStorage.getItem('mta_api_key');
             if (storedKey) return storedKey;
         }
 
-        // Default placeholder
+        // Default placeholder — triggers mock mode
         return 'YOUR_MTA_API_KEY';
     }
 
@@ -56,14 +51,9 @@ class MTAService {
      * Determine if mock data should be used
      */
     shouldUseMockData() {
-        // Check environment variable
-        if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_USE_MOCK_DATA === 'true') {
-            return true;
-        }
-
         // Check if API key is still placeholder
         if (!this.apiKey || this.apiKey === 'YOUR_MTA_API_KEY') {
-            console.warn('MTA API key not configured. Using mock data. Get your key at: https://api.mta.info/');
+            console.info('MTA API key not configured — using mock data. Set via: localStorage.setItem(\'mta_api_key\', \'YOUR_KEY\')');
             return true;
         }
 

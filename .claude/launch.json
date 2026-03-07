@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "subway-tracker",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["/tmp/subway_server.py"],
+      "port": 8000
+    }
+  ]
+}

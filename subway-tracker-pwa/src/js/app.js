@@ -253,10 +253,9 @@ class SubwayTrackerApp {
             if (!matches.length) { suggestionsEl.style.display = 'none'; return; }
 
             suggestionsEl.innerHTML = matches.map(s => `
-                <div class="suggestion-item" data-id="${s.id}"
-                     style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:14px;">
-                    <strong>${s.name}</strong>
-                    <span style="color:#999;font-size:12px;margin-left:6px;">${s.lines.join(', ')}</span>
+                <div class="suggestion-item" data-id="${s.id}">
+                    <strong class="suggestion-name">${s.name}</strong>
+                    <span class="suggestion-lines">${s.lines.join(', ')}</span>
                 </div>
             `).join('');
             suggestionsEl.style.display = 'block';

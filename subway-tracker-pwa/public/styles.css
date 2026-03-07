@@ -327,6 +327,71 @@ main {
     transform: translateY(-2px);
 }
 
+/* Station Search Input */
+.station-search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    box-sizing: border-box;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.station-search-input:focus {
+    border-color: var(--subway-yellow);
+}
+
+/* Station Suggestions Dropdown */
+.station-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border: 1.5px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    z-index: 200;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: var(--shadow-md);
+}
+
+.suggestion-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    transition: background 0.1s ease;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover,
+.suggestion-item:active {
+    background: var(--bg-primary);
+}
+
+.suggestion-name {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.suggestion-lines {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
 /* Arrival Cards - Sleek Train Display */
 .arrival-card {
     background: var(--bg-secondary);
@@ -739,7 +804,6 @@ main {
     .active-ride-dest { color: #E0E0E0; }
     .stale-badge { background: #332a00; color: #FFEEBA; border-color: #4a3c00; }
     .arrival-card.selected { background: #252300; }
-    #station-suggestions { background: #1E1E1E; border-color: #333; }
 }
 
 /* Safari iOS Specific Fixes */
