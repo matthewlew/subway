@@ -327,6 +327,241 @@ main {
     transform: translateY(-2px);
 }
 
+/* ══ TAG SCREEN ══════════════════════════════════════════════ */
+
+/* Section h2 override for tag screen — no emoji prefix */
+#tag-screen h2 { margin-bottom: 20px; }
+
+.tag-group {
+    margin-bottom: 22px;
+}
+
+.tag-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.tag-label-optional {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    text-transform: none;
+    letter-spacing: 0;
+    opacity: 0.65;
+    margin-left: 4px;
+}
+
+/* ── Line selector grid ──────────────────────────────────── */
+.line-selector-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.line-pick-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.3;
+    box-shadow: none;
+    font-family: var(--font-display);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.line-pick-btn:active { transform: scale(0.9); }
+
+.line-pick-btn.selected {
+    opacity: 1;
+    transform: scale(1.12);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+}
+
+/* ── Car number input ────────────────────────────────────── */
+.tag-car-input {
+    width: 100%;
+    padding: 18px 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    font-size: 38px;
+    font-family: var(--font-mono);
+    font-weight: 800;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    text-align: center;
+    letter-spacing: 10px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+    -moz-appearance: textfield;
+}
+.tag-car-input::-webkit-inner-spin-button,
+.tag-car-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.tag-car-input:focus { border-color: var(--subway-yellow); }
+.tag-car-input.has-line { border-color: var(--active-line-color, var(--subway-yellow)); }
+
+.tag-car-model {
+    min-height: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #27AE60;
+    text-align: center;
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+}
+
+/* ── Station row (search + location btn) ─────────────────── */
+.tag-station-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.tag-location-btn {
+    background: var(--bg-secondary);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.2s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.tag-location-btn:hover { border-color: var(--subway-yellow); }
+.tag-location-btn:active { transform: scale(0.92); }
+.tag-location-btn.detecting { animation: spin-fab 1.2s linear infinite; }
+
+/* ── Log Car button — disabled when conditions not met ───── */
+.tag-log-btn { margin-top: 4px; }
+.tag-log-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ── Tag success toast ───────────────────────────────────── */
+.tag-status {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    animation: fadeIn 0.3s ease;
+    line-height: 1.4;
+}
+.tag-status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.tag-status.new-car {
+    background: var(--subway-yellow);
+    color: var(--subway-black);
+}
+@media (prefers-color-scheme: dark) {
+    .tag-status.success { background: #1a3a24; color: #6fcf97; border-color: #2a5a34; }
+}
+
+/* ── Delete button ───────────────────────────────────────── */
+.btn-delete {
+    padding: var(--space-md) var(--space-lg);
+    background: transparent;
+    color: #E53935;
+    border: 2px solid #E53935;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.btn-delete:hover { background: #E53935; color: #fff; }
+
+/* ── Ride item — tappable, with edit affordance ─────────── */
+.ride-item {
+    cursor: pointer;
+    position: relative;
+}
+.ride-item:active { opacity: 0.75; }
+
+.ride-edit-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: opacity 0.15s ease;
+    line-height: 1;
+}
+.ride-edit-btn:hover { opacity: 1; }
+
+.ride-car-number {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.ride-car-model {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ── Model breakdown list in stats ──────────────────────── */
+.model-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.model-row:last-child { border-bottom: none; }
+.model-row-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.model-row-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+.model-row-bar {
+    height: 4px;
+    background: var(--subway-yellow);
+    border-radius: 2px;
+    margin-top: 4px;
+    transition: width 0.4s ease;
+}
+
 /* ── Arrivals screen — Station Header ───────────────────── */
 .arrivals-station-header {
     margin-bottom: 14px;
@@ -1171,6 +1406,8 @@ main {
     .boarding-pin-input { background: #121212; color: #E0E0E0; }
     .boarding-sheet-close { background: #2a2a2a; color: #A0A0A0; }
     .location-fab { box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+    .tag-car-input { background: #1E1E1E; color: #E0E0E0; }
+    .tag-location-btn { background: #1E1E1E; }
 }
 
 /* Safari iOS Specific Fixes */

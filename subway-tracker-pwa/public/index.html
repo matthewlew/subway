@@ -4,110 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#000000">
-    <meta name="description" content="Track your subway rides, train cars, and commuting stats">
-    <title>Subway Tracker</title>
+    <meta name="description" content="Tag NYC subway train cars, build your fleet, and track your rides">
+    <title>Train Tagger</title>
     <link rel="manifest" href="/manifest.json">
-    <link rel="stylesheet" href="/styles.css?v=6">
+    <link rel="stylesheet" href="/styles.css?v=7">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 </head>
 <body>
     <!-- ── Header ─────────────────────────────────────────────── -->
     <header>
-        <h1>Subway Tracker</h1>
+        <h1>Train Tagger</h1>
         <div id="connectivity-dot" class="connectivity-dot online" title="Online"></div>
     </header>
-
-    <!-- ── Active Ride Banner (persists across all tabs) ─────── -->
-    <div id="active-ride-bar" class="active-ride-bar" style="display:none;"></div>
 
     <!-- ── Main content ──────────────────────────────────────── -->
     <main>
 
-        <!-- Arrivals screen -->
-        <section id="arrivals-screen" class="section active">
+        <!-- ══ Tag screen (PRIMARY) ══════════════════════════════ -->
+        <section id="tag-screen" class="section active">
 
-            <!-- Station name — the biggest, most prominent element -->
-            <div class="arrivals-station-header">
-                <div id="station-display-name" class="station-display-name">NYC Subway</div>
-                <div id="station-display-lines" class="station-display-lines"></div>
-                <div id="station-display-status" class="station-display-status">Tap 📍 or search below to find trains</div>
-            </div>
-
-            <!-- Compact search bar -->
-            <div class="arrivals-search-bar">
-                <div style="position:relative;">
-                    <input type="text" id="station-search" placeholder="Search stations…"
-                           autocomplete="off" class="station-search-input" />
-                    <div id="station-suggestions" class="station-suggestions" style="display:none;"></div>
+            <!-- Line selector -->
+            <div class="tag-group">
+                <label class="tag-label">Line</label>
+                <div class="line-selector-grid" id="line-selector-grid">
+                    <!-- rendered by JS -->
                 </div>
             </div>
 
-            <!-- Arrivals list -->
-            <div id="arrivals-list"></div>
+            <!-- Car number — the hero input -->
+            <div class="tag-group">
+                <label class="tag-label">Car Number</label>
+                <input type="number" id="tag-car-input" class="tag-car-input"
+                       placeholder="1 2 3 4" inputmode="numeric" maxlength="4"
+                       autocomplete="off">
+                <div id="tag-car-model" class="tag-car-model"></div>
+            </div>
 
-            <!-- FAB — Use My Location (bottom-right floating button) -->
-            <button id="detect-location-btn" class="location-fab" title="Use my location" aria-label="Use my location">
-                📍
-            </button>
-        </section>
-
-        <!-- Log Ride screen -->
-        <section id="log-ride-screen" class="section">
-            <h2>Log Your Ride</h2>
-
-            <div class="card">
-                <div class="form-group">
-                    <label>Station</label>
-                    <input type="text" id="current-station" value="Detecting…" readonly>
-                </div>
-
-                <div class="form-group">
-                    <label>Train Line</label>
-                    <select id="line-selector">
-                        <option value="">— pick a line —</option>
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="A">A</option><option value="C">C</option><option value="E">E</option>
-                        <option value="B">B</option><option value="D">D</option><option value="F">F</option><option value="M">M</option>
-                        <option value="G">G</option>
-                        <option value="J">J</option><option value="Z">Z</option>
-                        <option value="L">L</option>
-                        <option value="N">N</option><option value="Q">Q</option><option value="R">R</option><option value="W">W</option>
-                        <option value="S">S</option>
-                    </select>
-                </div>
-
-                <button id="log-ride-btn" class="btn-primary">
-                    <span>🚇</span> Log Ride Now
-                </button>
-
-                <details style="margin-top:16px;">
-                    <summary style="cursor:pointer;font-weight:600;color:#555;font-size:14px;">
-                        + Car number &amp; notes (optional)
-                    </summary>
-                    <div style="margin-top:12px;">
-                        <div class="form-group">
-                            <label>Car Number (4 digits)</label>
-                            <div style="display:flex;gap:8px;">
-                                <input type="number" id="car-number" placeholder="e.g. 1234"
-                                       inputmode="numeric" maxlength="4" style="flex:1;">
-                                <button id="scan-car-btn" class="btn-secondary" style="width:auto;padding:0 14px;margin-top:0;">📷</button>
-                            </div>
-                            <small id="car-model-info" style="color:#27AE60;font-size:13px;"></small>
-                        </div>
-                        <div class="form-group">
-                            <label>Quick Note</label>
-                            <input type="text" id="ride-note" placeholder="Crowded, on time, delay…" maxlength="60">
-                        </div>
+            <!-- Station (optional) -->
+            <div class="tag-group">
+                <label class="tag-label">Station
+                    <span class="tag-label-optional">optional</span>
+                </label>
+                <div class="tag-station-row">
+                    <div style="position:relative;flex:1;">
+                        <input type="text" id="tag-station-search"
+                               placeholder="Search stations…"
+                               autocomplete="off" class="station-search-input" />
+                        <div id="tag-station-suggestions" class="station-suggestions" style="display:none;"></div>
                     </div>
-                </details>
-
-                <div id="log-status" style="margin-top:14px;padding:12px;border-radius:8px;display:none;font-size:14px;font-weight:500;"></div>
+                    <button id="tag-location-btn" class="tag-location-btn"
+                            title="Detect nearest station" aria-label="Use my location">📍</button>
+                </div>
             </div>
+
+            <!-- Log button -->
+            <button id="log-car-btn" class="btn-primary tag-log-btn" disabled>
+                Log Car →
+            </button>
+
+            <!-- Success/feedback toast -->
+            <div id="tag-status" class="tag-status" style="display:none;"></div>
+
         </section>
 
-        <!-- Stats screen -->
+        <!-- ══ Fleet screen ══════════════════════════════════════ -->
+        <section id="fleet-screen" class="section">
+            <h2>Your Fleet</h2>
+            <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">Every car you've tagged — model, lines ridden, ride count.</p>
+            <div id="fleet-empty" class="fleet-empty" style="display:none;">
+                <div style="font-size:56px;margin-bottom:12px;">🚃</div>
+                <p style="color:var(--text-secondary);">No cars tagged yet.</p>
+                <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;">Tag your first car from the Tag tab →</p>
+            </div>
+            <div id="fleet-list"></div>
+        </section>
+
+        <!-- ══ Stats screen ══════════════════════════════════════ -->
         <section id="stats-screen" class="section">
             <h2>📊 Your Stats</h2>
 
@@ -121,14 +93,14 @@
 
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>Total Rides</h3>
+                    <h3>Cars Tagged</h3>
                     <div class="value" id="total-rides">0</div>
-                    <div class="label">logged</div>
+                    <div class="label">total tags</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Underground</h3>
-                    <div class="value" id="time-underground">0m</div>
-                    <div class="label">estimated</div>
+                    <h3>Unique Cars</h3>
+                    <div class="value" id="unique-cars">0</div>
+                    <div class="label">in your fleet</div>
                 </div>
                 <div class="stat-card">
                     <h3>Top Station</h3>
@@ -138,21 +110,28 @@
                 <div class="stat-card">
                     <h3>Top Line</h3>
                     <div class="value" id="top-line">--</div>
-                    <div class="label">most rides</div>
+                    <div class="label">most tags</div>
                 </div>
             </div>
 
+            <!-- Model breakdown -->
             <div class="card">
-                <h3 style="margin-bottom:14px;font-size:15px;font-weight:700;">Recent Rides</h3>
+                <h3 style="margin-bottom:14px;font-size:15px;font-weight:700;">By Model</h3>
+                <div id="model-breakdown-list"></div>
+            </div>
+
+            <!-- Recent tags -->
+            <div class="card">
+                <h3 style="margin-bottom:14px;font-size:15px;font-weight:700;">Recent Tags</h3>
                 <div id="recent-rides-list" class="ride-list">
-                    <p style="text-align:center;color:#bbb;padding:24px 0;">No rides yet.</p>
+                    <p style="text-align:center;color:var(--text-secondary);padding:24px 0;">No tags yet — go tag a car!</p>
                 </div>
             </div>
 
-            <!-- Data retention + API key info -->
+            <!-- Data + API -->
             <div class="card">
                 <h3 style="margin-bottom:8px;font-size:15px;font-weight:700;">Live Arrivals Setup</h3>
-                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Real-time trains need a free MTA API key from <strong>api.mta.info</strong>. Currently showing mock data.</p>
+                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Real-time trains need a free MTA API key from <strong>api.mta.info</strong>. Currently showing mock data in the Arrivals tab.</p>
                 <div style="display:flex;gap:8px;">
                     <input type="text" id="api-key-input" placeholder="Paste MTA API key…"
                            class="api-key-input" autocomplete="off" />
@@ -163,42 +142,54 @@
 
             <div class="card">
                 <h3 style="margin-bottom:8px;font-size:15px;font-weight:700;">Your Data</h3>
-                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">All ride data is stored locally on your device using IndexedDB — nothing is sent to a server. Export a backup anytime.</p>
+                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">All data is stored locally on your device using IndexedDB — nothing is sent to a server. Export a backup anytime.</p>
                 <button id="export-data-btn" class="btn-secondary" style="width:auto;padding:8px 18px;font-size:14px;margin-top:0;">Export JSON</button>
             </div>
         </section>
 
-        <!-- Fleet screen -->
-        <section id="fleet-screen" class="section">
-            <h2>Your Fleet</h2>
-            <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">Every train car you've ridden, with model info and ride count.</p>
-            <div id="fleet-empty" class="fleet-empty" style="display:none;">
-                <div style="font-size:56px;margin-bottom:12px;">🚃</div>
-                <p style="color:var(--text-secondary);">No cars logged yet.</p>
-                <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;">Add a car number when boarding a train.</p>
+        <!-- ══ Arrivals screen (context helper, not primary) ═════ -->
+        <section id="arrivals-screen" class="section">
+
+            <div class="arrivals-station-header">
+                <div id="station-display-name" class="station-display-name">NYC Subway</div>
+                <div id="station-display-lines" class="station-display-lines"></div>
+                <div id="station-display-status" class="station-display-status">Search for a station or tap 📍</div>
             </div>
-            <div id="fleet-list"></div>
+
+            <div class="arrivals-search-bar">
+                <div style="position:relative;">
+                    <input type="text" id="station-search" placeholder="Search stations…"
+                           autocomplete="off" class="station-search-input" />
+                    <div id="station-suggestions" class="station-suggestions" style="display:none;"></div>
+                </div>
+            </div>
+
+            <div id="arrivals-list"></div>
+
+            <button id="detect-location-btn" class="location-fab" title="Use my location" aria-label="Use my location">
+                📍
+            </button>
         </section>
 
     </main>
 
     <!-- ── Bottom nav ─────────────────────────────────────────── -->
     <nav>
-        <button class="nav-btn active" data-screen="arrivals">
-            <span>🚇</span>Arrivals
-        </button>
-        <button class="nav-btn" data-screen="log-ride">
-            <span>➕</span>Log
-        </button>
-        <button class="nav-btn" data-screen="stats">
-            <span>📊</span>Stats
+        <button class="nav-btn active" data-screen="tag">
+            <span>🏷️</span>Tag
         </button>
         <button class="nav-btn" data-screen="fleet">
             <span>🚃</span>Fleet
         </button>
+        <button class="nav-btn" data-screen="stats">
+            <span>📊</span>Stats
+        </button>
+        <button class="nav-btn" data-screen="arrivals">
+            <span>🚇</span>Arrivals
+        </button>
     </nav>
 
-    <!-- ── Boarding Sheet (slides up for car PIN entry) ─────── -->
+    <!-- ── Boarding Sheet (used from Arrivals tab) ─────────────── -->
     <div id="boarding-sheet" class="boarding-sheet" style="display:none;">
         <div id="boarding-sheet-overlay" class="boarding-sheet-overlay"></div>
         <div class="boarding-sheet-card">
@@ -214,26 +205,44 @@
                 <button class="boarding-sheet-close" id="boarding-sheet-close">✕</button>
             </div>
             <div class="boarding-sheet-body">
-                <label class="boarding-pin-label">Car Number <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional — enter 4-digit number from car end)</span></label>
+                <label class="boarding-pin-label">Car Number <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional — 4-digit number on car end)</span></label>
                 <input type="number" id="boarding-pin-input"
                        class="boarding-pin-input"
                        placeholder="1234"
                        inputmode="numeric" maxlength="4">
                 <div id="boarding-pin-model" class="boarding-pin-model"></div>
             </div>
-            <button id="boarding-confirm-btn" class="btn-primary">Board →</button>
+            <button id="boarding-confirm-btn" class="btn-primary">Board & Tag →</button>
         </div>
     </div>
 
-    <!-- ── Camera modal ───────────────────────────────────────── -->
-    <div id="camera-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;padding:20px;align-items:center;justify-content:center;">
-        <div style="background:var(--bg-secondary);border-radius:16px;padding:24px;max-width:500px;width:100%;">
-            <button class="modal-close" style="float:right;background:none;border:none;font-size:24px;cursor:pointer;line-height:1;color:var(--text-primary);">&times;</button>
-            <h2 style="margin-bottom:16px;font-size:18px;">Scan Car Number</h2>
-            <video id="camera-feed" autoplay playsinline style="width:100%;border-radius:10px;"></video>
-            <canvas id="camera-canvas" style="display:none;"></canvas>
-            <button id="capture-btn" class="btn-primary" style="margin-top:14px;">Capture</button>
-            <div id="ocr-result" style="margin-top:10px;font-size:14px;color:#666;"></div>
+    <!-- ── Edit Ride Sheet ─────────────────────────────────────── -->
+    <div id="edit-ride-sheet" class="boarding-sheet" style="display:none;">
+        <div id="edit-ride-overlay" class="boarding-sheet-overlay"></div>
+        <div class="boarding-sheet-card">
+            <div class="boarding-sheet-drag-bar"></div>
+            <div class="boarding-sheet-header">
+                <div style="font-size:16px;font-weight:700;color:var(--text-primary);">Edit Tag</div>
+                <button class="boarding-sheet-close" id="edit-ride-close">✕</button>
+            </div>
+            <div class="boarding-sheet-body">
+                <label class="boarding-pin-label">Car Number</label>
+                <input type="number" id="edit-car-input"
+                       class="boarding-pin-input"
+                       placeholder="1234"
+                       inputmode="numeric" maxlength="4">
+                <div id="edit-car-model" class="boarding-pin-model"></div>
+                <label class="boarding-pin-label" style="margin-top:14px;">Note (optional)</label>
+                <input type="text" id="edit-note-input"
+                       class="station-search-input"
+                       placeholder="Crowded, on time, delay…" maxlength="60"
+                       style="margin-top:4px;">
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button id="edit-ride-save-btn" class="btn-primary" style="flex:1;">Save</button>
+                <button id="edit-ride-delete-btn" class="btn-delete" style="flex:0 0 auto;">Delete</button>
+            </div>
+            <input type="hidden" id="edit-ride-id">
         </div>
     </div>
 

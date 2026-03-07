@@ -102,6 +102,33 @@ class DBService {
         });
     }
 
+    async deleteRide(id) {
+        const tx = this.db.transaction(['rides'], 'readwrite');
+        const store = tx.objectStore('rides');
+        const request = store.delete(id);
+        return new Promise((resolve, reject) => {
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async updateRide(id, updates) {
+        const tx = this.db.transaction(['rides'], 'readwrite');
+        const store = tx.objectStore('rides');
+        const getRequest = store.get(id);
+        return new Promise((resolve, reject) => {
+            getRequest.onsuccess = () => {
+                const existing = getRequest.result;
+                if (!existing) { reject(new Error('Ride not found')); return; }
+                const updated = { ...existing, ...updates };
+                const putRequest = store.put(updated);
+                putRequest.onsuccess = () => resolve(updated);
+                putRequest.onerror = () => reject(putRequest.error);
+            };
+            getRequest.onerror = () => reject(getRequest.error);
+        });
+    }
+
     async updateCar(carNumber, model) {
         const tx = this.db.transaction(['cars'], 'readwrite');
         const store = tx.objectStore('cars');
