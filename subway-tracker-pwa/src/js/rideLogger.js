@@ -7,16 +7,16 @@ class RideLogger {
 
     async logRide(options = {}) {
         try {
-            // Get current location and station
-            if (!this.currentStation) {
+            // Use pre-supplied station (from boarding state) or detect from GPS
+            if (!options.station && !this.currentStation) {
                 await this.detectStation();
             }
 
             // Build ride data
             const rideData = {
                 timestamp: Date.now(),
-                station: this.currentStation?.name || 'Unknown',
-                stationId: this.currentStation?.id || null,
+                station: options.station || this.currentStation?.name || 'Unknown',
+                stationId: options.stationId || this.currentStation?.id || null,
                 line: options.line || this.inferLine(),
                 direction: options.direction || this.inferDirection(),
                 carNumber: options.carNumber || null,

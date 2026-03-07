@@ -71,22 +71,39 @@ class MTAService {
     }
 
     /**
-     * Get real-time arrivals for a station
+     * Get real-time arrivals for a station.
+     * Strategy: memory cache → localStorage cache (offline fallback) → live API → mock
      */
     async getArrivalsForStation(stationId, lines = []) {
         const cacheKey = `${stationId}-${lines.join(',')}`;
-        const cached = this.arrivalsCache.get(cacheKey);
+        const lsKey = `arrivals_${cacheKey}`;
 
-        if (cached && (Date.now() - cached.timestamp < this.cacheDuration)) {
-            return cached.data;
+        // 1. Hot in-memory cache (30s)
+        const memCached = this.arrivalsCache.get(cacheKey);
+        if (memCached && (Date.now() - memCached.timestamp < this.cacheDuration)) {
+            return memCached.data;
         }
 
+        // 2. If offline, serve localStorage cache (up to 10 min stale)
+        if (!navigator.onLine) {
+            const lsCached = this.getLocalCache(lsKey);
+            if (lsCached) {
+                lsCached.data.forEach(a => { a._cached = true; a._cacheAge = Date.now() - lsCached.timestamp; });
+                return lsCached.data;
+            }
+            // No cache available offline — fall through to mock
+            return this.getMockArrivals(stationId, lines);
+        }
+
+        // 3. Mock mode
         if (this.mockArrivals) {
             const mockData = this.getMockArrivals(stationId, lines);
+            this.saveLocalCache(lsKey, mockData);
             this.arrivalsCache.set(cacheKey, { data: mockData, timestamp: Date.now() });
             return mockData;
         }
 
+        // 4. Live API
         try {
             const arrivals = [];
             const feedGroups = new Set(lines.map(line => this.getFeedGroup(line)));
@@ -98,12 +115,34 @@ class MTAService {
 
             arrivals.sort((a, b) => a.arrivalTime - b.arrivalTime);
             this.arrivalsCache.set(cacheKey, { data: arrivals, timestamp: Date.now() });
-
+            this.saveLocalCache(lsKey, arrivals);
             return arrivals;
         } catch (error) {
             console.error('MTA API error:', error);
+            // Try localStorage before falling to mock
+            const lsCached = this.getLocalCache(lsKey);
+            if (lsCached) {
+                lsCached.data.forEach(a => { a._cached = true; a._cacheAge = Date.now() - lsCached.timestamp; });
+                return lsCached.data;
+            }
             return this.getMockArrivals(stationId, lines);
         }
+    }
+
+    saveLocalCache(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+        } catch (e) { /* storage full, ignore */ }
+    }
+
+    getLocalCache(key, maxAgeMs = 10 * 60 * 1000) {
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            if (Date.now() - parsed.timestamp > maxAgeMs) return null;
+            return parsed;
+        } catch (e) { return null; }
     }
 
     async fetchFeedArrivals(feedGroup, stationId, lines) {
