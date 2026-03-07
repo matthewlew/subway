@@ -16,6 +16,7 @@ class SubwayTrackerApp {
         this.setupPreRideScreen();
         this.setupLogRideScreen();
         this.setupStatsScreen();
+        this.setupStatsExtras();
         this.setupConnectivity();
 
         await rideLogger.requestNotificationPermission();
@@ -56,13 +57,14 @@ class SubwayTrackerApp {
 
     // ─── Boarding state ──────────────────────────────────────────────────────
 
-    boardTrain(arrival, station) {
+    boardTrain(arrival, station, carNumber = null) {
         this.activeBoarding = {
             line: arrival.line,
             destination: arrival.destination,
             direction: arrival.direction,
             station: station?.name || 'Unknown station',
             stationId: station?.id || null,
+            carNumber: carNumber || null,
             boardedAt: Date.now()
         };
         localStorage.setItem('active_boarding', JSON.stringify(this.activeBoarding));
@@ -142,7 +144,8 @@ class SubwayTrackerApp {
             line: this.activeBoarding.line,
             station: this.activeBoarding.station,
             stationId: this.activeBoarding.stationId,
-            direction: this.activeBoarding.direction
+            direction: this.activeBoarding.direction,
+            carNumber: this.activeBoarding.carNumber || null
         });
 
         if (result.success) {
@@ -178,14 +181,14 @@ class SubwayTrackerApp {
         const last = this.getLastStation();
         if (!last) return;
 
-        // Fill search box with last station name so user sees context immediately
+        // Fill search box with last station name
         const searchInput = document.getElementById('station-search');
         if (searchInput && !searchInput.value) searchInput.value = last.name;
 
-        const statusMsg = document.getElementById('location-status-msg');
-        if (statusMsg) statusMsg.textContent = `📍 Last: ${last.name} — tap GPS to update`;
+        // Show station name immediately in the big header
+        this.updateStationHeader(last, 'Last visited · tap 📍 to update');
 
-        // Load arrivals for last station (works from cache if offline)
+        // Load arrivals (works from cache if offline)
         this.loadArrivalsForStation(last, false);
     }
 
@@ -206,36 +209,33 @@ class SubwayTrackerApp {
         if (screen) {
             screen.classList.add('active');
             this.currentScreen = screenName;
-            if (screenName === 'stats') this.loadStatsScreen();
+            if (screenName === 'stats')  this.loadStatsScreen();
+            if (screenName === 'fleet')  this.loadFleetScreen();
         }
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.screen === screenName);
         });
+        // Hide location FAB when not on arrivals tab
+        const fab = document.getElementById('detect-location-btn');
+        if (fab) fab.style.display = screenName === 'arrivals' ? '' : 'none';
     }
 
     // ─── Pre-ride (arrivals) screen ──────────────────────────────────────────
 
     setupPreRideScreen() {
-        const quickLogBtn = document.getElementById('quick-log-from-arrival');
         const detectBtn = document.getElementById('detect-location-btn');
 
-        quickLogBtn?.addEventListener('click', () => {
-            if (this.selectedArrival) {
-                const lastStation = this.getLastStation();
-                this.boardTrain(this.selectedArrival, lastStation);
-                // Also pre-fill log screen line in case they go manual
-                const lineSelector = document.getElementById('line-selector');
-                if (lineSelector) lineSelector.value = this.selectedArrival.line;
-            }
-        });
-
         detectBtn?.addEventListener('click', () => {
-            detectBtn.disabled = true;
-            detectBtn.textContent = 'Detecting…';
-            this.loadPreRideScreen();
+            detectBtn.classList.add('detecting');
+            detectBtn.style.pointerEvents = 'none';
+            this.loadPreRideScreen().finally(() => {
+                detectBtn.classList.remove('detecting');
+                detectBtn.style.pointerEvents = '';
+            });
         });
 
         this.setupStationSearch();
+        this.setupBoardingSheet();
     }
 
     setupStationSearch() {
@@ -279,19 +279,38 @@ class SubwayTrackerApp {
         });
     }
 
-    async loadArrivalsForStation(station, showLoading = true) {
-        const locationStatusMsg = document.getElementById('location-status-msg');
-        const arrivalsList = document.getElementById('arrivals-list');
-        const stationInput = document.getElementById('current-station');
+    updateStationHeader(station, statusHtml = '') {
+        const nameEl = document.getElementById('station-display-name');
+        const linesEl = document.getElementById('station-display-lines');
+        const statusEl = document.getElementById('station-display-status');
 
-        if (showLoading) {
-            if (locationStatusMsg) locationStatusMsg.textContent = `📍 Showing: ${station.name}`;
-            if (arrivalsList) arrivalsList.innerHTML = '<p style="color:#999;padding:16px;">Loading arrivals…</p>';
+        if (nameEl) nameEl.textContent = station.name;
+
+        if (linesEl && station.lines) {
+            const lightLines = ['N', 'Q', 'R', 'W', 'L'];
+            linesEl.innerHTML = station.lines.map(line => {
+                const color = statsService.getLineColor(line);
+                const tc = lightLines.includes(line) ? '#000' : '#fff';
+                return `<span class="line-badge" style="background:${color};color:${tc}">${line}</span>`;
+            }).join('');
         }
 
-        if (stationInput) stationInput.value = station.name;
+        if (statusEl) statusEl.innerHTML = statusHtml;
 
+        // Keep log-screen station input in sync
+        const stationInput = document.getElementById('current-station');
+        if (stationInput) stationInput.value = station.name;
+    }
+
+    async loadArrivalsForStation(station, showLoading = true) {
+        const arrivalsList = document.getElementById('arrivals-list');
         const searchInput = document.getElementById('station-search');
+
+        if (showLoading) {
+            this.updateStationHeader(station, '⏳ Loading arrivals…');
+            if (arrivalsList) arrivalsList.innerHTML = '<p style="color:var(--text-secondary);padding:16px;">Loading arrivals…</p>';
+        }
+
         if (searchInput && !searchInput.value) searchInput.value = station.name;
 
         this.saveLastStation(station);
@@ -299,25 +318,20 @@ class SubwayTrackerApp {
         const arrivals = await mtaService.getArrivalsForStation(station.id, station.lines);
         const isCached = arrivals.length > 0 && arrivals[0]._cached;
 
-        if (locationStatusMsg) {
-            if (isCached) {
-                const ageMin = Math.round(arrivals[0]._cacheAge / 60000);
-                locationStatusMsg.innerHTML = `📍 ${station.name} <span class="stale-badge">cached ${ageMin}m ago</span>`;
-            } else {
-                locationStatusMsg.textContent = `📍 ${station.name}`;
-            }
+        let statusHtml = 'Live arrivals';
+        if (isCached) {
+            const ageMin = Math.round(arrivals[0]._cacheAge / 60000);
+            statusHtml = `<span class="stale-badge">Cached ${ageMin}m ago</span> · offline data`;
         }
+        this.updateStationHeader(station, statusHtml);
 
         this.renderArrivals(arrivals, isCached);
         this.startCountdown();
     }
 
     async loadPreRideScreen() {
-        const locationStatusMsg = document.getElementById('location-status-msg');
-        const detectBtn = document.getElementById('detect-location-btn');
-
-        if (locationStatusMsg) locationStatusMsg.textContent = '📍 Getting your location…';
-        if (detectBtn) { detectBtn.disabled = true; detectBtn.textContent = 'Detecting…'; }
+        const statusEl = document.getElementById('station-display-status');
+        if (statusEl) statusEl.textContent = '📍 Getting your location…';
 
         try {
             await locationService.getCurrentPosition();
@@ -326,14 +340,11 @@ class SubwayTrackerApp {
             if (!nearby.length) nearby = locationService.getNearbyStations(5.0);
 
             if (!nearby.length) {
-                if (locationStatusMsg) locationStatusMsg.textContent = '⚠️ No stations found nearby.';
-                if (detectBtn) { detectBtn.disabled = false; detectBtn.textContent = '📍 Use My Location'; }
+                if (statusEl) statusEl.textContent = '⚠️ No stations found nearby — try searching.';
                 return;
             }
 
             const closest = nearby[0];
-            if (detectBtn) { detectBtn.disabled = false; detectBtn.textContent = '↻ Refresh'; }
-
             const searchInput = document.getElementById('station-search');
             if (searchInput) searchInput.value = closest.name;
 
@@ -342,10 +353,9 @@ class SubwayTrackerApp {
         } catch (error) {
             console.error('Location error:', error);
             let msg = '❌ Could not get location.';
-            if (error.code === 1) msg = '🚫 Location denied — search manually above.';
+            if (error.code === 1) msg = '🚫 Location access denied — search for a station.';
             else if (error.code === 3) msg = '⏱ Location timed out — try again.';
-            if (locationStatusMsg) locationStatusMsg.textContent = msg;
-            if (detectBtn) { detectBtn.disabled = false; detectBtn.textContent = '📍 Use My Location'; }
+            if (statusEl) statusEl.textContent = msg;
 
             // Fall back to last station from cache
             const last = this.getLastStation();
@@ -355,59 +365,148 @@ class SubwayTrackerApp {
 
     renderArrivals(arrivals, isCached = false) {
         const arrivalsList = document.getElementById('arrivals-list');
-        const quickLogBtn = document.getElementById('quick-log-from-arrival');
-
         this.renderedArrivals = arrivals.map(a => ({ ...a, fetchedAt: Date.now() }));
         this.selectedArrival = null;
 
-        if (quickLogBtn) { quickLogBtn.style.display = 'none'; quickLogBtn.disabled = true; }
-
         if (arrivals.length === 0) {
             arrivalsList.innerHTML = `
-                <div style="text-align:center;color:#7F8C8D;padding:32px 20px;">
+                <div style="text-align:center;color:var(--text-secondary);padding:32px 20px;">
                     <div style="font-size:40px;margin-bottom:12px;">${navigator.onLine ? '🚇' : '📡'}</div>
                     <p>${navigator.onLine ? 'No upcoming trains found.' : 'Offline — no cached arrivals for this station.'}</p>
-                    ${!navigator.onLine ? '<p style="font-size:13px;margin-top:8px;color:#bbb;">You can still log a ride manually →</p>' : ''}
+                    ${!navigator.onLine ? '<p style="font-size:13px;margin-top:8px;color:var(--text-secondary);">You can still log a ride manually from the Log tab.</p>' : ''}
                 </div>`;
             return;
         }
 
+        const lightLines = ['N', 'Q', 'R', 'W', 'L'];
         arrivalsList.innerHTML = arrivals.map((arrival, idx) => {
-            const lightLines = ['N', 'Q', 'R', 'W', 'L'];
             const textColor = lightLines.includes(arrival.line) ? '#000' : '#fff';
+            const lineColor = statsService.getLineColor(arrival.line);
             return `
             <div class="arrival-card${isCached ? ' cached' : ''}" data-index="${idx}">
-                <span class="line-badge" style="background:${statsService.getLineColor(arrival.line)};color:${textColor}">${arrival.line}</span>
+                <span class="line-badge" style="background:${lineColor};color:${textColor}">${arrival.line}</span>
                 <div class="arrival-info">
                     <div class="destination">${arrival.destination}</div>
                     <div class="direction">${arrival.direction}</div>
                 </div>
-                <div class="arrival-time${arrival.minutesAway < 1 ? ' arriving' : ''}" data-arrival-idx="${idx}">
-                    ${mtaService.formatArrivalTime(arrival.minutesAway)}
+                <div class="arrival-right">
+                    <div class="arrival-time${arrival.minutesAway < 1 ? ' arriving' : ''}" data-arrival-idx="${idx}">
+                        ${mtaService.formatArrivalTime(arrival.minutesAway)}
+                    </div>
+                    <button class="board-inline-btn" data-board-idx="${idx}" style="border-color:${lineColor};color:${lineColor};">Board →</button>
                 </div>
             </div>`;
         }).join('');
 
-        const arrivalCards = arrivalsList.querySelectorAll('.arrival-card');
-        arrivalCards.forEach((card, idx) => {
-            card.addEventListener('click', () => {
-                arrivalCards.forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
+        // Wire up Board buttons — open boarding sheet directly
+        arrivalsList.querySelectorAll('.board-inline-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.boardIdx, 10);
                 this.selectedArrival = arrivals[idx];
-
-                if (quickLogBtn) {
-                    quickLogBtn.style.display = 'block';
-                    quickLogBtn.disabled = false;
-                    quickLogBtn.classList.remove('disabled');
-                    const lineColor = statsService.getLineColor(arrivals[idx].line);
-                    quickLogBtn.style.background = lineColor;
-                    quickLogBtn.style.borderColor = lineColor;
-                    const lightLines = ['N', 'Q', 'R', 'W', 'L'];
-                    quickLogBtn.style.color = lightLines.includes(arrivals[idx].line) ? '#000' : '#fff';
-                    quickLogBtn.textContent = `Board ${arrivals[idx].line} → ${arrivals[idx].destination}`;
-                }
+                this.showBoardingSheet(arrivals[idx]);
             });
         });
+
+        // Tapping the card itself also selects it (highlights it)
+        arrivalsList.querySelectorAll('.arrival-card').forEach((card, idx) => {
+            card.addEventListener('click', () => {
+                arrivalsList.querySelectorAll('.arrival-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                this.selectedArrival = arrivals[idx];
+            });
+        });
+    }
+
+    // ─── Boarding sheet (PIN entry) ──────────────────────────────────────────
+
+    setupBoardingSheet() {
+        document.getElementById('boarding-sheet-overlay')?.addEventListener('click', () => this.hideBoardingSheet());
+        document.getElementById('boarding-sheet-close')?.addEventListener('click', () => this.hideBoardingSheet());
+
+        document.getElementById('boarding-pin-input')?.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            const modelEl = document.getElementById('boarding-pin-model');
+            if (val.length === 4 && rideLogger.validateCarNumber(val)) {
+                if (modelEl) modelEl.textContent = rideLogger.getCarModel(val);
+            } else {
+                if (modelEl) modelEl.textContent = '';
+            }
+        });
+
+        document.getElementById('boarding-confirm-btn')?.addEventListener('click', () => {
+            this.confirmBoarding();
+        });
+    }
+
+    showBoardingSheet(arrival) {
+        const sheet = document.getElementById('boarding-sheet');
+        if (!sheet) return;
+
+        const lightLines = ['N', 'Q', 'R', 'W', 'L'];
+        const lineColor = statsService.getLineColor(arrival.line);
+        const textColor = lightLines.includes(arrival.line) ? '#000' : '#fff';
+
+        const badge = document.getElementById('boarding-sheet-badge');
+        if (badge) {
+            badge.textContent = arrival.line;
+            badge.style.background = lineColor;
+            badge.style.color = textColor;
+        }
+
+        const destEl = document.getElementById('boarding-sheet-dest');
+        const dirEl  = document.getElementById('boarding-sheet-dir');
+        if (destEl) destEl.textContent = `→ ${arrival.destination}`;
+        if (dirEl)  dirEl.textContent  = arrival.direction;
+
+        // Tint confirm button to match line color
+        const confirmBtn = document.getElementById('boarding-confirm-btn');
+        if (confirmBtn) {
+            confirmBtn.style.background = lineColor;
+            confirmBtn.style.borderColor = lineColor;
+            confirmBtn.style.color = textColor;
+        }
+
+        // Clear previous PIN
+        const pinInput = document.getElementById('boarding-pin-input');
+        if (pinInput) pinInput.value = '';
+        const modelEl = document.getElementById('boarding-pin-model');
+        if (modelEl) modelEl.textContent = '';
+
+        sheet.style.display = 'flex';
+        // Focus PIN input after animation
+        setTimeout(() => pinInput?.focus(), 350);
+    }
+
+    hideBoardingSheet() {
+        const sheet = document.getElementById('boarding-sheet');
+        if (sheet) sheet.style.display = 'none';
+    }
+
+    confirmBoarding() {
+        if (!this.selectedArrival) return;
+
+        const pinInput = document.getElementById('boarding-pin-input');
+        const carNumber = pinInput?.value.trim() || null;
+
+        if (carNumber && !rideLogger.validateCarNumber(carNumber)) {
+            pinInput.style.borderColor = '#e74c3c';
+            setTimeout(() => { if (pinInput) pinInput.style.borderColor = ''; }, 1500);
+            return;
+        }
+
+        const lastStation = this.getLastStation();
+        this.boardTrain(this.selectedArrival, lastStation, carNumber);
+
+        // Pre-fill log screen
+        const lineSelector = document.getElementById('line-selector');
+        if (lineSelector) lineSelector.value = this.selectedArrival.line;
+        if (carNumber) {
+            const carInput = document.getElementById('car-number');
+            if (carInput) carInput.value = carNumber;
+        }
+
+        this.hideBoardingSheet();
     }
 
     startCountdown() {
@@ -607,6 +706,107 @@ class SubwayTrackerApp {
                     <span class="car-badge">${car.timesSpotted}×</span>
                 </div>
             `).join('');
+    }
+
+    // ─── Fleet screen ─────────────────────────────────────────────────────────
+
+    async loadFleetScreen() {
+        const listEl = document.getElementById('fleet-list');
+        const emptyEl = document.getElementById('fleet-empty');
+        if (!listEl) return;
+
+        const cars = await dbService.getAllCars();
+        const rides = await dbService.getAllRides();
+
+        if (cars.length === 0) {
+            if (emptyEl) emptyEl.style.display = 'block';
+            listEl.innerHTML = '';
+            return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+
+        // Build a map of carNumber → lines seen on
+        const carLineMap = {};
+        rides.forEach(r => {
+            if (r.carNumber && r.line) {
+                if (!carLineMap[r.carNumber]) carLineMap[r.carNumber] = new Set();
+                carLineMap[r.carNumber].add(r.line);
+            }
+        });
+
+        const lightLines = ['N', 'Q', 'R', 'W', 'L'];
+        const sorted = [...cars].sort((a, b) => b.timesSpotted - a.timesSpotted);
+
+        listEl.innerHTML = sorted.map(car => {
+            const lines = carLineMap[car.carNumber] ? [...carLineMap[car.carNumber]] : [];
+            const lineBadges = lines.map(line => {
+                const color = statsService.getLineColor(line);
+                const tc = lightLines.includes(line) ? '#000' : '#fff';
+                return `<span class="line-badge" style="background:${color};color:${tc}">${line}</span>`;
+            }).join('');
+
+            const firstDate = car.firstSeen
+                ? new Date(car.firstSeen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : '—';
+            const lastDate = car.lastSeen
+                ? new Date(car.lastSeen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : '—';
+
+            return `
+            <div class="fleet-car-card">
+                <div class="fleet-car-number">${car.carNumber}</div>
+                <div class="fleet-car-info">
+                    <div class="fleet-car-model">${car.model}</div>
+                    <div class="fleet-car-meta">First: ${firstDate} · Last: ${lastDate}</div>
+                    ${lineBadges ? `<div class="fleet-car-lines">${lineBadges}</div>` : ''}
+                </div>
+                <div class="fleet-car-stats">
+                    <div class="fleet-car-count">${car.timesSpotted}</div>
+                    <div class="fleet-car-count-label">${car.timesSpotted === 1 ? 'ride' : 'rides'}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ─── Stats extras: API key + data export ──────────────────────────────────
+
+    setupStatsExtras() {
+        // API key save
+        const saveBtn = document.getElementById('save-api-key-btn');
+        const keyInput = document.getElementById('api-key-input');
+        const keyStatus = document.getElementById('api-key-status');
+
+        // Show current key state
+        const currentKey = localStorage.getItem('mta_api_key');
+        if (currentKey) {
+            if (keyInput) keyInput.placeholder = `Key set: …${currentKey.slice(-6)}`;
+            if (keyStatus) keyStatus.textContent = '✅ API key is active — real arrivals enabled';
+        }
+
+        saveBtn?.addEventListener('click', () => {
+            const key = keyInput?.value.trim();
+            if (!key) {
+                if (keyStatus) keyStatus.textContent = '⚠️ Enter a key first.';
+                return;
+            }
+            localStorage.setItem('mta_api_key', key);
+            if (keyStatus) keyStatus.textContent = '✅ Saved! Reload the app to use real arrivals.';
+            if (keyInput) { keyInput.value = ''; keyInput.placeholder = `Key set: …${key.slice(-6)}`; }
+        });
+
+        // Data export
+        document.getElementById('export-data-btn')?.addEventListener('click', async () => {
+            const rides = await dbService.getAllRides();
+            const cars  = await dbService.getAllCars();
+            const payload = { exportedAt: new Date().toISOString(), rides, cars };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `subway-tracker-export-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
     }
 
     // ─── Misc ────────────────────────────────────────────────────────────────

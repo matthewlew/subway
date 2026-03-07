@@ -7,7 +7,7 @@
     <meta name="description" content="Track your subway rides, train cars, and commuting stats">
     <title>Subway Tracker</title>
     <link rel="manifest" href="/manifest.json">
-    <link rel="stylesheet" href="/styles.css?v=5">
+    <link rel="stylesheet" href="/styles.css?v=6">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 </head>
 <body>
@@ -25,23 +25,18 @@
 
         <!-- Arrivals screen -->
         <section id="arrivals-screen" class="section active">
-            <h2>🚇 Nearby Trains</h2>
 
-            <div id="location-status" class="card" style="padding:14px 16px;">
-                <p id="location-status-msg" style="margin-bottom:10px;font-size:14px;color:#555;">Find trains at your station.</p>
+            <!-- Station name — the biggest, most prominent element -->
+            <div class="arrivals-station-header">
+                <div id="station-display-name" class="station-display-name">NYC Subway</div>
+                <div id="station-display-lines" class="station-display-lines"></div>
+                <div id="station-display-status" class="station-display-status">Tap 📍 or search below to find trains</div>
+            </div>
 
-                <button id="detect-location-btn" class="btn-primary" style="margin-bottom:10px;">
-                    📍 Use My Location
-                </button>
-
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <hr style="flex:1;border:none;border-top:1px solid var(--border-color);"/>
-                    <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">or search</span>
-                    <hr style="flex:1;border:none;border-top:1px solid var(--border-color);"/>
-                </div>
-
+            <!-- Compact search bar -->
+            <div class="arrivals-search-bar">
                 <div style="position:relative;">
-                    <input type="text" id="station-search" placeholder="Type a station name…"
+                    <input type="text" id="station-search" placeholder="Search stations…"
                            autocomplete="off" class="station-search-input" />
                     <div id="station-suggestions" class="station-suggestions" style="display:none;"></div>
                 </div>
@@ -50,10 +45,9 @@
             <!-- Arrivals list -->
             <div id="arrivals-list"></div>
 
-            <!-- Board button — hidden until train is selected -->
-            <button id="quick-log-from-arrival" class="btn-primary"
-                    style="display:none;margin-top:12px;transition:background 0.2s,color 0.2s;" disabled>
-                Select a train above
+            <!-- FAB — Use My Location (bottom-right floating button) -->
+            <button id="detect-location-btn" class="location-fab" title="Use my location" aria-label="Use my location">
+                📍
             </button>
         </section>
 
@@ -155,12 +149,35 @@
                 </div>
             </div>
 
+            <!-- Data retention + API key info -->
             <div class="card">
-                <h3 style="margin-bottom:14px;font-size:15px;font-weight:700;">Cars Spotted</h3>
-                <div id="cars-list">
-                    <p style="color:#bbb;font-size:14px;">Add car numbers when logging to track them here.</p>
+                <h3 style="margin-bottom:8px;font-size:15px;font-weight:700;">Live Arrivals Setup</h3>
+                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Real-time trains need a free MTA API key from <strong>api.mta.info</strong>. Currently showing mock data.</p>
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="api-key-input" placeholder="Paste MTA API key…"
+                           class="api-key-input" autocomplete="off" />
+                    <button id="save-api-key-btn" class="btn-secondary api-key-save-btn">Save</button>
                 </div>
+                <div id="api-key-status" style="font-size:12px;color:var(--text-secondary);margin-top:6px;min-height:16px;"></div>
             </div>
+
+            <div class="card">
+                <h3 style="margin-bottom:8px;font-size:15px;font-weight:700;">Your Data</h3>
+                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">All ride data is stored locally on your device using IndexedDB — nothing is sent to a server. Export a backup anytime.</p>
+                <button id="export-data-btn" class="btn-secondary" style="width:auto;padding:8px 18px;font-size:14px;margin-top:0;">Export JSON</button>
+            </div>
+        </section>
+
+        <!-- Fleet screen -->
+        <section id="fleet-screen" class="section">
+            <h2>Your Fleet</h2>
+            <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">Every train car you've ridden, with model info and ride count.</p>
+            <div id="fleet-empty" class="fleet-empty" style="display:none;">
+                <div style="font-size:56px;margin-bottom:12px;">🚃</div>
+                <p style="color:var(--text-secondary);">No cars logged yet.</p>
+                <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;">Add a car number when boarding a train.</p>
+            </div>
+            <div id="fleet-list"></div>
         </section>
 
     </main>
@@ -176,7 +193,37 @@
         <button class="nav-btn" data-screen="stats">
             <span>📊</span>Stats
         </button>
+        <button class="nav-btn" data-screen="fleet">
+            <span>🚃</span>Fleet
+        </button>
     </nav>
+
+    <!-- ── Boarding Sheet (slides up for car PIN entry) ─────── -->
+    <div id="boarding-sheet" class="boarding-sheet" style="display:none;">
+        <div id="boarding-sheet-overlay" class="boarding-sheet-overlay"></div>
+        <div class="boarding-sheet-card">
+            <div class="boarding-sheet-drag-bar"></div>
+            <div class="boarding-sheet-header">
+                <div class="boarding-sheet-train">
+                    <span id="boarding-sheet-badge" class="line-badge line-1">?</span>
+                    <div>
+                        <div id="boarding-sheet-dest" class="boarding-sheet-dest">—</div>
+                        <div id="boarding-sheet-dir" class="boarding-sheet-dir">—</div>
+                    </div>
+                </div>
+                <button class="boarding-sheet-close" id="boarding-sheet-close">✕</button>
+            </div>
+            <div class="boarding-sheet-body">
+                <label class="boarding-pin-label">Car Number <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional — enter 4-digit number from car end)</span></label>
+                <input type="number" id="boarding-pin-input"
+                       class="boarding-pin-input"
+                       placeholder="1234"
+                       inputmode="numeric" maxlength="4">
+                <div id="boarding-pin-model" class="boarding-pin-model"></div>
+            </div>
+            <button id="boarding-confirm-btn" class="btn-primary">Board →</button>
+        </div>
+    </div>
 
     <!-- ── Camera modal ───────────────────────────────────────── -->
     <div id="camera-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;padding:20px;align-items:center;justify-content:center;">

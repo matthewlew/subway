@@ -210,7 +210,7 @@ header h1::before {
 
 /* When banner is visible, push main content down */
 body.has-active-ride main {
-    margin-top: 130px; /* header ~72px + banner ~58px */
+    margin-top: 172px; /* header ~72px + banner ~80px (3-line) + 20px buffer */
 }
 
 /* Bottom Navigation - Modern iOS Style */
@@ -325,6 +325,90 @@ main {
 .card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
+}
+
+/* ── Arrivals screen — Station Header ───────────────────── */
+.arrivals-station-header {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.station-display-name {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--text-primary);
+    line-height: 1.05;
+    margin-bottom: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+.station-display-lines {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+    min-height: 26px;
+}
+
+.station-display-lines .line-badge {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+}
+
+.station-display-status {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* ── Arrivals search bar ─────────────────────────────────── */
+.arrivals-search-bar {
+    margin-bottom: 16px;
+    position: relative;
+}
+
+/* ── Location FAB ────────────────────────────────────────── */
+.location-fab {
+    position: fixed;
+    bottom: calc(80px + env(safe-area-inset-bottom) + 12px);
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--subway-black);
+    border: 3px solid var(--subway-yellow);
+    color: var(--subway-white);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    z-index: 500;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    line-height: 1;
+}
+
+.location-fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+
+.location-fab:active {
+    transform: scale(0.95);
+}
+
+.location-fab.detecting {
+    opacity: 0.7;
+    animation: spin-fab 1.2s linear infinite;
+}
+
+@keyframes spin-fab {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
 
 /* Station Search Input */
@@ -493,12 +577,45 @@ main {
     color: var(--text-secondary);
 }
 
+/* Right side of arrival card: time + board button stacked */
+.arrival-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
 .arrival-time {
     font-size: 20px;
     font-weight: 700;
     color: var(--subway-black);
     font-family: var(--font-mono);
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Inline "Board →" button on each arrival card */
+.board-inline-btn {
+    background: var(--subway-black);
+    color: var(--subway-yellow);
+    border: 1.5px solid var(--subway-yellow);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--font-display);
+}
+
+.board-inline-btn:hover,
+.board-inline-btn:active {
+    background: var(--subway-yellow);
+    color: var(--subway-black);
 }
 
 .arrival-time.arriving {
@@ -788,6 +905,251 @@ main {
     }
 }
 
+/* ── Boarding Sheet (slide-up modal) ─────────────────────── */
+.boarding-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+}
+
+.boarding-sheet-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.boarding-sheet-card {
+    position: relative;
+    background: var(--bg-secondary);
+    border-radius: 24px 24px 0 0;
+    padding: 8px 20px calc(28px + env(safe-area-inset-bottom));
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+}
+
+.boarding-sheet-drag-bar {
+    width: 40px;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+}
+
+.boarding-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.boarding-sheet-train {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.boarding-sheet-train .line-badge {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+}
+
+.boarding-sheet-dest {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.boarding-sheet-dir {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.boarding-sheet-close {
+    background: var(--bg-primary);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 15px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.boarding-sheet-body {
+    margin-bottom: 18px;
+}
+
+.boarding-pin-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+}
+
+.boarding-pin-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 28px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    text-align: center;
+    letter-spacing: 8px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+    -moz-appearance: textfield;
+}
+
+.boarding-pin-input::-webkit-inner-spin-button,
+.boarding-pin-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.boarding-pin-input:focus {
+    border-color: var(--subway-yellow);
+}
+
+.boarding-pin-model {
+    min-height: 18px;
+    font-size: 13px;
+    color: #27AE60;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 8px;
+}
+
+/* ── Fleet screen ─────────────────────────────────────────── */
+.fleet-empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-secondary);
+}
+
+.fleet-car-card {
+    background: var(--bg-secondary);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.fleet-car-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.fleet-car-number {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-primary);
+    min-width: 62px;
+    font-variant-numeric: tabular-nums;
+}
+
+.fleet-car-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.fleet-car-model {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.fleet-car-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.fleet-car-lines {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.fleet-car-lines .line-badge {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+}
+
+.fleet-car-stats {
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.fleet-car-count {
+    font-size: 26px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.fleet-car-count-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+/* ── API key input in stats ──────────────────────────────── */
+.api-key-input {
+    flex: 1;
+    font-size: 13px;
+    padding: 9px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+.api-key-input:focus { border-color: var(--subway-yellow); }
+.api-key-save-btn {
+    width: auto !important;
+    margin-top: 0 !important;
+    padding: 9px 16px !important;
+    font-size: 14px !important;
+}
+
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
     :root {
@@ -804,6 +1166,11 @@ main {
     .active-ride-dest { color: #E0E0E0; }
     .stale-badge { background: #332a00; color: #FFEEBA; border-color: #4a3c00; }
     .arrival-card.selected { background: #252300; }
+    .arrival-time { color: #E0E0E0; }
+    .boarding-sheet-card { background: #1E1E1E; }
+    .boarding-pin-input { background: #121212; color: #E0E0E0; }
+    .boarding-sheet-close { background: #2a2a2a; color: #A0A0A0; }
+    .location-fab { box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
 }
 
 /* Safari iOS Specific Fixes */
