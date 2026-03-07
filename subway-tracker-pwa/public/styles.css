@@ -1,5 +1,5 @@
-/* Modern NYC Subway Tracker - Redesigned UI */
-/* Authentic subway aesthetic with modern polish */
+/* Train Tagger — Design System */
+/* Vignelli principles: typographic hierarchy, grid discipline, color with purpose */
 
 :root {
     /* NYC Subway Brand Colors */
@@ -22,17 +22,17 @@
     --line-S: #808183;
 
     /* UI Colors */
-    --bg-primary: #FAFAFA;
+    --bg-primary: #F5F5F5;
     --bg-secondary: #FFFFFF;
     --bg-dark: #1A1A1A;
-    --text-primary: #212121;
-    --text-secondary: #757575;
-    --border-color: #E0E0E0;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --text-primary: #111111;
+    --text-secondary: #6B6B6B;
+    --border-color: #E4E4E4;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,0.10);
 
-    /* Spacing System */
+    /* Spacing — strict 8px grid */
     --space-xs: 4px;
     --space-sm: 8px;
     --space-md: 16px;
@@ -40,8 +40,8 @@
     --space-xl: 32px;
     --space-xxl: 48px;
 
-    /* Typography */
-    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* Typography — Helvetica Neue first, then system */
+    --font-display: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
     --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
 }
 
@@ -88,8 +88,12 @@ header h1 {
 }
 
 header h1::before {
-    content: "🚇";
-    font-size: 26px;
+    content: "■";
+    color: var(--subway-yellow);
+    font-size: 13px;
+    margin-right: 4px;
+    vertical-align: middle;
+    line-height: 1;
 }
 
 /* Connectivity dot */
@@ -108,110 +112,6 @@ header h1::before {
     50% { opacity: 0.4; }
 }
 
-/* ── Active Ride Banner ─────────────────────────────────────── */
-.active-ride-bar {
-    position: fixed;
-    top: 72px; /* below header */
-    left: 0;
-    right: 0;
-    z-index: 990;
-    background: #fff;
-    border-left: 5px solid #000;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from { transform: translateY(-100%); opacity: 0; }
-    to   { transform: translateY(0);     opacity: 1; }
-}
-
-.active-ride-line-badge {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 18px;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.active-ride-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.active-ride-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.active-ride-dest {
-    font-size: 14px;
-    font-weight: 700;
-    color: #111;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.active-ride-station {
-    font-size: 12px;
-    color: #888;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.active-ride-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.active-ride-log-btn {
-    background: var(--subway-black);
-    color: var(--subway-yellow);
-    border: none;
-    border-radius: 8px;
-    padding: 7px 14px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: opacity 0.2s;
-}
-.active-ride-log-btn:hover { opacity: 0.85; }
-.active-ride-log-btn:disabled { opacity: 0.5; cursor: default; }
-
-.active-ride-clear-btn {
-    background: none;
-    border: none;
-    font-size: 18px;
-    color: #bbb;
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 6px;
-    transition: color 0.2s;
-}
-.active-ride-clear-btn:hover { color: #555; }
-
-/* When banner is visible, push main content down */
-body.has-active-ride main {
-    margin-top: 172px; /* header ~72px + banner ~80px (3-line) + 20px buffer */
-}
 
 /* Bottom Navigation - Modern iOS Style */
 nav {
@@ -237,22 +137,24 @@ nav button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     color: var(--text-secondary);
-    font-size: 12px;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: color 0.15s ease;
     border-radius: 12px;
     min-width: 70px;
+    position: relative;
 }
 
 nav button span {
-    font-size: 24px;
-    transition: transform 0.2s ease;
+    font-size: 22px;
+    transition: transform 0.15s ease;
 }
 
 nav button:hover {
-    background: rgba(0,0,0,0.04);
+    color: var(--text-primary);
 }
 
 nav button.active {
@@ -260,7 +162,19 @@ nav button.active {
 }
 
 nav button.active span {
-    transform: scale(1.1);
+    transform: scale(1.08);
+}
+
+nav button.active::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 2px;
+    background: var(--subway-yellow);
+    border-radius: 1px;
 }
 
 /* Main Content Area */
@@ -299,32 +213,20 @@ main {
 /* Section Headers */
 .section h2 {
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-primary);
     margin-bottom: var(--space-lg);
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
+    letter-spacing: -0.4px;
 }
 
-.section h2::before {
-    font-size: 24px;
-}
-
-/* Cards with NYC Subway Aesthetic */
+/* Cards */
 .card {
     background: var(--bg-secondary);
-    border-radius: 16px;
+    border-radius: 12px;
     padding: var(--space-lg);
     margin-bottom: var(--space-md);
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
-    transition: all 0.2s ease;
-}
-
-.card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
 }
 
 /* ══ TAG SCREEN ══════════════════════════════════════════════ */
@@ -364,47 +266,49 @@ main {
 }
 
 .line-pick-btn {
-    width: 46px;
-    height: 46px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: none;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 800;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    transition: opacity 0.12s ease, outline-offset 0.12s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.3;
+    opacity: 0.22;
     box-shadow: none;
     font-family: var(--font-display);
     -webkit-tap-highlight-color: transparent;
+    outline: 2px solid transparent;
+    outline-offset: 0px;
 }
 
-.line-pick-btn:active { transform: scale(0.9); }
+.line-pick-btn:active { opacity: 0.6; }
 
 .line-pick-btn.selected {
     opacity: 1;
-    transform: scale(1.12);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+    outline: 2.5px solid var(--text-primary);
+    outline-offset: 3px;
 }
 
 /* ── Car number input ────────────────────────────────────── */
 .tag-car-input {
     width: 100%;
-    padding: 18px 20px;
-    border: 2px solid var(--border-color);
-    border-radius: 14px;
-    font-size: 38px;
+    padding: 20px 20px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 40px;
     font-family: var(--font-mono);
     font-weight: 800;
     color: var(--text-primary);
     background: var(--bg-secondary);
     text-align: center;
-    letter-spacing: 10px;
+    letter-spacing: 8px;
     outline: none;
     box-sizing: border-box;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.15s ease;
     -moz-appearance: textfield;
 }
 .tag-car-input::-webkit-inner-spin-button,
@@ -414,12 +318,13 @@ main {
 
 .tag-car-model {
     min-height: 20px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
-    color: #27AE60;
+    color: #2E7D32;
     text-align: center;
     margin-top: 8px;
-    letter-spacing: 0.3px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 /* ── Station row (search + location btn) ─────────────────── */
@@ -723,17 +628,15 @@ main {
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.15s ease;
 }
 
 .arrival-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateX(4px);
     border-color: var(--subway-yellow);
 }
 
 .arrival-card:active {
-    transform: scale(0.98);
+    opacity: 0.85;
 }
 
 .arrival-card.selected {
@@ -898,35 +801,33 @@ main {
     box-shadow: 0 0 0 3px rgba(252, 204, 10, 0.1);
 }
 
-/* Primary Button - NYC Subway Yellow */
+/* Primary Button - NYC Subway Black + Yellow border */
 .btn-primary {
     width: 100%;
     padding: var(--space-md) var(--space-lg);
     background: var(--subway-black);
     color: var(--subway-white);
-    border: 3px solid var(--subway-yellow);
-    border-radius: 12px;
-    font-size: 16px;
+    border: 2px solid var(--subway-yellow);
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.15s ease, color 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-sm);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
 }
 
 .btn-primary:hover {
     background: var(--subway-yellow);
     color: var(--subway-black);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
 }
 
 .btn-primary:active {
-    transform: translateY(0);
+    transform: scale(0.98);
 }
 
 /* Secondary Button */
@@ -935,12 +836,13 @@ main {
     padding: var(--space-md);
     background: var(--bg-secondary);
     color: var(--text-primary);
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    font-size: 14px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 13px;
     font-weight: 600;
+    letter-spacing: 0.3px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.15s ease, background 0.15s ease;
     margin-top: var(--space-sm);
 }
 
@@ -959,7 +861,7 @@ main {
 
 .stat-card {
     background: var(--bg-secondary);
-    border-radius: 16px;
+    border-radius: 12px;
     padding: var(--space-lg);
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
@@ -967,25 +869,29 @@ main {
 }
 
 .stat-card h3 {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: var(--space-sm);
+    letter-spacing: 1.2px;
+    margin-bottom: 10px;
 }
 
 .stat-card .value {
-    font-size: 32px;
-    font-weight: 700;
+    font-size: 36px;
+    font-weight: 800;
     color: var(--subway-black);
     font-family: var(--font-mono);
+    letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
 }
 
 .stat-card .label {
-    font-size: 14px;
+    font-size: 12px;
     color: var(--text-secondary);
-    margin-top: var(--space-xs);
+    margin-top: 6px;
+    letter-spacing: 0.2px;
 }
 
 /* Loading States */
@@ -997,15 +903,10 @@ main {
 
 .loading::before {
     content: "🚇";
-    font-size: 48px;
+    font-size: 40px;
     display: block;
     margin-bottom: var(--space-md);
-    animation: bounce 1s ease-in-out infinite;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    animation: fadeIn 0.5s ease;
 }
 
 /* Empty States */
@@ -1053,13 +954,15 @@ main {
 
 .period-selector select {
     background: var(--bg-secondary);
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    padding: var(--space-sm) var(--space-md);
-    font-size: 14px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
+    font-family: var(--font-display);
     cursor: pointer;
+    letter-spacing: 0.2px;
 }
 
 /* Ride History List */
@@ -1069,13 +972,12 @@ main {
 
 .ride-item {
     background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: var(--space-md);
-    margin-bottom: var(--space-sm);
+    border-radius: 10px;
+    padding: 12px var(--space-md);
+    margin-bottom: 6px;
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
 }
 
@@ -1154,15 +1056,15 @@ main {
 .boarding-sheet-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.55);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .boarding-sheet-card {
     position: relative;
     background: var(--bg-secondary);
-    border-radius: 24px 24px 0 0;
+    border-radius: 18px 18px 0 0;
     padding: 8px 20px calc(28px + env(safe-area-inset-bottom));
     width: 100%;
     max-width: 600px;
@@ -1287,19 +1189,14 @@ main {
 
 .fleet-car-card {
     background: var(--bg-secondary);
-    border-radius: 14px;
+    border-radius: 12px;
     padding: 14px 16px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
     gap: 14px;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
-    transition: all 0.2s ease;
-}
-
-.fleet-car-card:hover {
-    box-shadow: var(--shadow-md);
 }
 
 .fleet-car-number {
@@ -1388,26 +1285,24 @@ main {
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg-primary: #121212;
-        --bg-secondary: #1E1E1E;
-        --text-primary: #E0E0E0;
-        --text-secondary: #A0A0A0;
-        --border-color: #333333;
+        --bg-primary: #0F0F0F;
+        --bg-secondary: #1A1A1A;
+        --text-primary: #E8E8E8;
+        --text-secondary: #999999;
+        --border-color: #2E2E2E;
     }
-    .active-ride-bar {
-        background: #1E1E1E;
-        border-bottom-color: #333;
-    }
-    .active-ride-dest { color: #E0E0E0; }
+    .stat-card .value { color: #E8E8E8; }
     .stale-badge { background: #332a00; color: #FFEEBA; border-color: #4a3c00; }
-    .arrival-card.selected { background: #252300; }
-    .arrival-time { color: #E0E0E0; }
-    .boarding-sheet-card { background: #1E1E1E; }
-    .boarding-pin-input { background: #121212; color: #E0E0E0; }
-    .boarding-sheet-close { background: #2a2a2a; color: #A0A0A0; }
-    .location-fab { box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
-    .tag-car-input { background: #1E1E1E; color: #E0E0E0; }
-    .tag-location-btn { background: #1E1E1E; }
+    .arrival-card.selected { background: #1f1b00; }
+    .arrival-time { color: #E8E8E8; }
+    .boarding-sheet-card { background: #1A1A1A; }
+    .boarding-pin-input { background: #0F0F0F; color: #E8E8E8; }
+    .boarding-sheet-close { background: #2a2a2a; color: #999; }
+    .location-fab { box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
+    .tag-car-input { background: #1A1A1A; color: #E8E8E8; }
+    .tag-location-btn { background: #1A1A1A; }
+    nav { background: #1A1A1A; border-top-color: #2E2E2E; }
+    header { border-bottom-color: var(--subway-yellow); }
 }
 
 /* Safari iOS Specific Fixes */
