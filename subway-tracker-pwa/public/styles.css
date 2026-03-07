@@ -327,6 +327,16 @@ main {
     text-transform: uppercase;
 }
 
+.tag-car-specs {
+    min-height: 16px;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 3px;
+    letter-spacing: 0.3px;
+}
+
 /* ── Station row (search + location btn) ─────────────────── */
 .tag-station-row {
     display: flex;
@@ -1178,6 +1188,21 @@ main {
     font-weight: 600;
     text-align: center;
     margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.car-model-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #27AE60;
+}
+
+.car-model-specs {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
 }
 
 /* ── Fleet screen ─────────────────────────────────────────── */
@@ -1219,10 +1244,25 @@ main {
     color: var(--text-primary);
 }
 
+.fleet-car-specs {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.fleet-car-note {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-top: 3px;
+    font-style: italic;
+}
+
 .fleet-car-meta {
     font-size: 12px;
     color: var(--text-secondary);
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 .fleet-car-lines {

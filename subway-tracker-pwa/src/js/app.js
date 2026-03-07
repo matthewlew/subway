@@ -134,15 +134,21 @@ class SubwayTrackerApp {
             });
         }
 
-        // ── Car number input → model detection ──
+        // ── Car number input → model + spec detection ──
         const carInput = document.getElementById('tag-car-input');
         const modelEl  = document.getElementById('tag-car-model');
+        const specsEl  = document.getElementById('tag-car-specs');
         carInput?.addEventListener('input', () => {
             const val = carInput.value.trim();
             if (val.length === 4 && rideLogger.validateCarNumber(val)) {
-                if (modelEl) modelEl.textContent = rideLogger.getCarModel(val);
+                const info = dbService.getCarModelInfo(val);
+                if (modelEl) modelEl.textContent = info.model;
+                if (specsEl) specsEl.textContent = (info.built && info.built !== '—')
+                    ? `${info.built} · ${info.manufacturer}`
+                    : '';
             } else {
                 if (modelEl) modelEl.textContent = '';
+                if (specsEl) specsEl.textContent = '';
             }
             this.updateTagButton();
         });
@@ -479,7 +485,12 @@ class SubwayTrackerApp {
             const val = e.target.value.trim();
             const modelEl = document.getElementById('boarding-pin-model');
             if (val.length === 4 && rideLogger.validateCarNumber(val)) {
-                if (modelEl) modelEl.textContent = rideLogger.getCarModel(val);
+                const info = dbService.getCarModelInfo(val);
+                if (modelEl) {
+                    modelEl.innerHTML = `<span class="car-model-name">${info.model}</span>` +
+                        (info.built && info.built !== '—'
+                            ? `<span class="car-model-specs">${info.built} · ${info.manufacturer}</span>` : '');
+                }
             } else {
                 if (modelEl) modelEl.textContent = '';
             }
@@ -666,7 +677,12 @@ class SubwayTrackerApp {
             const val = e.target.value.trim();
             const modelEl = document.getElementById('edit-car-model');
             if (val.length === 4 && rideLogger.validateCarNumber(val)) {
-                if (modelEl) modelEl.textContent = rideLogger.getCarModel(val);
+                const info = dbService.getCarModelInfo(val);
+                if (modelEl) {
+                    modelEl.innerHTML = `<span class="car-model-name">${info.model}</span>` +
+                        (info.built && info.built !== '—'
+                            ? `<span class="car-model-specs">${info.built} · ${info.manufacturer}</span>` : '');
+                }
             } else {
                 if (modelEl) modelEl.textContent = '';
             }
@@ -689,7 +705,12 @@ class SubwayTrackerApp {
         if (rideIdInput) rideIdInput.value = ride.id;
 
         if (ride.carNumber && rideLogger.validateCarNumber(ride.carNumber)) {
-            if (modelEl) modelEl.textContent = rideLogger.getCarModel(ride.carNumber);
+            const info = dbService.getCarModelInfo(ride.carNumber);
+            if (modelEl) {
+                modelEl.innerHTML = `<span class="car-model-name">${info.model}</span>` +
+                    (info.built && info.built !== '—'
+                        ? `<span class="car-model-specs">${info.built} · ${info.manufacturer}</span>` : '');
+            }
         } else {
             if (modelEl) modelEl.textContent = '';
         }
@@ -791,6 +812,7 @@ class SubwayTrackerApp {
                 return `<span class="line-badge" style="background:${color};color:${tc}">${line}</span>`;
             }).join('');
 
+            const info = dbService.getCarModelInfo(car.carNumber);
             const firstDate = car.firstSeen
                 ? new Date(car.firstSeen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                 : '—';
@@ -803,6 +825,9 @@ class SubwayTrackerApp {
                 <div class="fleet-car-number">${car.carNumber}</div>
                 <div class="fleet-car-info">
                     <div class="fleet-car-model">${car.model}</div>
+                    ${info.built && info.built !== '—'
+                        ? `<div class="fleet-car-specs">${info.built} · ${info.manufacturer}</div>` : ''}
+                    ${info.note ? `<div class="fleet-car-note">${info.note}</div>` : ''}
                     <div class="fleet-car-meta">First: ${firstDate} · Last: ${lastDate}</div>
                     ${lineBadges ? `<div class="fleet-car-lines">${lineBadges}</div>` : ''}
                 </div>

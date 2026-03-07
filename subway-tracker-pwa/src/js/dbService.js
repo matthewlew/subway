@@ -1,3 +1,67 @@
+// Car model reference data — keyed by the model names returned by inferCarModel()
+const CAR_MODEL_DATA = {
+    'R62/R62A': {
+        built:        '1983–1985',
+        manufacturer: 'Bombardier / St. Louis Car Co.',
+        lines:        ['1','2','3','4','5','6'],
+        note:         'Last of the classic IRT fleet; still serving 60 years on'
+    },
+    'R142/R142A': {
+        built:        '1999–2006',
+        manufacturer: 'Bombardier / Kawasaki',
+        lines:        ['1','2','3','4','5'],
+        note:         'First NYC cars with automated passenger information displays'
+    },
+    'R160': {
+        built:        '2006–2010',
+        manufacturer: 'Alstom / Kawasaki',
+        lines:        ['A','C','E','J','Z','N','Q','R'],
+        note:         'Largest single order in MTA history — 1,662 cars'
+    },
+    'R68/R68A': {
+        built:        '1986–1988',
+        manufacturer: 'Kawasaki / Bombardier',
+        lines:        ['B','D','F','N','Q'],
+        note:         'BMT workhorse — originally had no exterior route signs'
+    },
+    'R143/R160': {
+        built:        '2001–2010',
+        manufacturer: 'Kawasaki / Alstom',
+        lines:        ['L','A','C','E'],
+        note:         'R143 was built exclusively for the L line'
+    },
+    'R46': {
+        built:        '1975–1978',
+        manufacturer: 'Pullman Standard',
+        lines:        ['A','C','F','R'],
+        note:         'One of the oldest cars still in service — outlasted many newer models'
+    },
+    'R179': {
+        built:        '2018–2020',
+        manufacturer: 'Bombardier',
+        lines:        ['A','C','J','Z'],
+        note:         'Delivery ran 2+ years behind schedule'
+    },
+    'R211': {
+        built:        '2022–present',
+        manufacturer: 'Kawasaki',
+        lines:        ['A','C','E','B','D','F'],
+        note:         'The newest fleet — open gangways between cars'
+    },
+    'R32 (Vintage)': {
+        built:        '1964–1965',
+        manufacturer: 'Budd Company',
+        lines:        ['A','C'],
+        note:         '"Brightliners" — served 50+ years before retirement'
+    },
+    'Unknown': {
+        built:        '—',
+        manufacturer: '—',
+        lines:        [],
+        note:         'Car number not in a known range'
+    }
+};
+
 // IndexedDB service for offline data storage
 class DBService {
     constructor() {
@@ -172,7 +236,6 @@ class DBService {
     }
 
     inferCarModel(carNumber) {
-        // Simple heuristic based on NYC Subway car numbering
         const num = parseInt(carNumber);
 
         if (num >= 1000 && num <= 1802) return 'R62/R62A';
@@ -186,6 +249,11 @@ class DBService {
         if (num >= 9000 && num <= 9999) return 'R32 (Vintage)';
 
         return 'Unknown';
+    }
+
+    getCarModelInfo(carNumber) {
+        const model = this.inferCarModel(carNumber);
+        return { model, ...CAR_MODEL_DATA[model] };
     }
 
     async cacheStation(stationData) {

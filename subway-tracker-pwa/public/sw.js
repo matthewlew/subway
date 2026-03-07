@@ -1,5 +1,5 @@
 // Service Worker for offline support
-const CACHE_NAME = 'subway-tracker-v1';
+const CACHE_NAME = 'subway-tracker-v2';
 const urlsToCache = [
   '/',
   '/index.html',
